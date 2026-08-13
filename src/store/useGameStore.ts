@@ -31,25 +31,11 @@ export interface BigProject {
   reqStats: { sta: number; spd: number; tel: number };
   totalWorkPoints: number;
   currentWorkPoints: number;
-  timeLimit: number; // Detik
+  timeLimit: number;
   timeRemaining: number;
   rewardGold: number;
   rewardExp: number;
   completed: boolean;
-}
-
-export interface EventOption {
-  text: string;
-  reqStat?: { type: 'sta' | 'spd' | 'tel'; minAmount: number };
-  costGold?: number;
-  action: (state: any) => { message: string; success: boolean };
-}
-
-export interface RandomEvent {
-  id: string;
-  title: string;
-  description: string;
-  options: EventOption[];
 }
 
 export interface ActiveBuff {
@@ -57,6 +43,30 @@ export interface ActiveBuff {
   goldMultiplier: number;
   expMultiplier: number;
   durationRemaining: number;
+}
+
+export interface ActionResult {
+  message: string;
+  success: boolean;
+  costGold?: number;
+  rewardGold?: number;
+  rewardExp?: number;
+  rewardStat?: { type: 'sta' | 'spd' | 'tel'; amount: number };
+  buff?: ActiveBuff;
+}
+
+export interface EventOption {
+  text: string;
+  reqStat?: { type: 'sta' | 'spd' | 'tel'; minAmount: number };
+  costGold?: number;
+  action: (state: any) => ActionResult;
+}
+
+export interface RandomEvent {
+  id: string;
+  title: string;
+  description: string;
+  options: EventOption[];
 }
 
 export const INITIAL_TASKS: Task[] = [
@@ -397,7 +407,8 @@ export const useGameStore = create<GameState>()(
           let newStats = { ...state.stats };
 
           if (result.rewardStat) {
-            newStats[result.rewardStat.type] += result.rewardStat.amount;
+            const { type, amount } = result.rewardStat;
+            newStats[type] += amount;
           }
 
           let newBuff = state.activeBuff;
@@ -425,7 +436,6 @@ export const useGameStore = create<GameState>()(
         const state = get();
         const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent } = state;
 
-        // 1. Countdown Event Next Spawn
         let nextEventTimer = timeUntilNextEvent - deltaTime;
         let nextCurrentEvent = currentEvent;
 
@@ -435,7 +445,6 @@ export const useGameStore = create<GameState>()(
           nextEventTimer = 60;
         }
 
-        // 2. Countdown Active Buff
         let nextBuff = activeBuff;
         if (activeBuff) {
           const remaining = activeBuff.durationRemaining - deltaTime;
@@ -446,7 +455,6 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // 3. Proyek Besar (Boss Battle) Calculation
         let updatedBigProjects = [...bigProjects];
         let nextActiveProjectId = activeProjectId;
         let bonusGoldFromProj = 0;
@@ -457,14 +465,12 @@ export const useGameStore = create<GameState>()(
           if (projIdx !== -1) {
             const proj = updatedBigProjects[projIdx];
             
-            // Work Rate = (STA * 1.5) + (SPD * 2.0) + (TEL * 2.5) per detik
             const workRatePerSecond = (stats.sta * 1.5) + (stats.spd * 2.0) + (stats.tel * 2.5);
             const addedWork = workRatePerSecond * deltaTime;
             const newWorkPoints = proj.currentWorkPoints + addedWork;
             const newTimeRemaining = proj.timeRemaining - deltaTime;
 
             if (newWorkPoints >= proj.totalWorkPoints) {
-              // VICTORY: Proyek Selesai!
               updatedBigProjects[projIdx] = {
                 ...proj,
                 currentWorkPoints: proj.totalWorkPoints,
@@ -479,7 +485,6 @@ export const useGameStore = create<GameState>()(
                 eventNotification: `🎉 SELAMAT! Proyek Besar "${proj.name}" Berhasil Diselesaikan! Hadiah: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(proj.rewardGold)}!`,
               });
             } else if (newTimeRemaining <= 0) {
-              // FAILED: Batas Waktu Habis!
               updatedBigProjects[projIdx] = {
                 ...proj,
                 currentWorkPoints: 0,
@@ -499,7 +504,6 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // 4. Task Progress Tick
         if (!activeTaskId) {
           set({
             gold: gold + bonusGoldFromProj,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore, INITIAL_TASKS } from './store/useGameStore';
 
 export default function App() {
@@ -88,7 +88,6 @@ export default function App() {
     return true;
   });
 
-  // Hitung Work Rate Per Detik (Daya Serang Boss Proyek)
   const currentWorkRate = (stats.sta * 1.5) + (stats.spd * 2.0) + (stats.tel * 2.5);
 
   return (
@@ -244,7 +243,7 @@ export default function App() {
               )}
             </div>
 
-            {/* Atribut Skill Pos dengan Floating Bubble Tooltip */}
+            {/* Atribut Skill Pos */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -500,7 +499,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 2: PROYEK BESAR / TENDER (BOSS BATTLE) */}
+            {/* TAB 2: PROYEK BESAR / TENDER */}
             {activeTab === 'projects' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-5 shadow-xl space-y-4">
                 <div className="border-b border-[#23335A] pb-3">
@@ -536,7 +535,6 @@ export default function App() {
                             <h3 className="font-extrabold text-white text-sm">{proj.name}</h3>
                             <p className="text-[11px] text-slate-400 mt-0.5">{proj.description}</p>
                             
-                            {/* Req Stats Badges */}
                             <div className="flex flex-wrap gap-1.5 mt-2">
                               <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${stats.sta >= proj.reqStats.sta ? 'bg-red-950/80 text-red-300 border border-red-800' : 'bg-slate-900 text-slate-500'}`}>
                                 STA ≥ {proj.reqStats.sta}
@@ -556,7 +554,6 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Progress Bar Boss Proyek saat sedang berjalan */}
                         {isRunning && (
                           <div className="mt-3 space-y-1.5 bg-[#0A0F1D] p-3 rounded-lg border border-orange-500/50">
                             <div className="flex justify-between text-xs font-bold">
