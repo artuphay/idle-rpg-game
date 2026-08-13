@@ -52,7 +52,7 @@ export default function App() {
 
   useEffect(() => {
     initAudioUnlock();
-    checkOfflineIncome(); // Hitung gaji offline saat game dibuka
+    checkOfflineIncome();
     const interval = setInterval(() => {
       gameTick(0.1);
     }, 100);
@@ -126,7 +126,7 @@ export default function App() {
     <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
-        {/* NOTIFIKASI EVENT */}
+        {/* NOTIFIKASI EVENT / LENCANA */}
         {eventNotification && (
           <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3 sm:p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
             <span className="pr-2">📢 {eventNotification}</span>
@@ -829,6 +829,7 @@ export default function App() {
                     )}
                   </div>
                 </div>
+
               </div>
             )}
 
@@ -837,14 +838,16 @@ export default function App() {
         </div>
       </div>
 
-      {/* POPUP MODAL EVENT ACAK RESPONSIF */}
+      {/* 1. POPUP MODAL EVENT ACAK DENGAN TOMBOL X */}
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
             
+            {/* Tombol Tutup X */}
             <button
               onClick={closeCurrentEvent}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A]"
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              title="Tutup Modal"
             >
               ✕
             </button>
@@ -872,10 +875,20 @@ export default function App() {
         </div>
       )}
 
-      {/* POPUP SELEBRASI LEVEL UP JABATAN KARIR */}
+      {/* 2. POPUP SELEBRASI LEVEL UP JABATAN DENGAN TOMBOL X */}
       {levelUpCelebration && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#141E36] border-2 border-amber-400 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow">
+          <div className="bg-[#141E36] border-2 border-amber-400 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow relative">
+            
+            {/* Tombol Tutup X */}
+            <button
+              onClick={dismissLevelUpCelebration}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              title="Tutup"
+            >
+              ✕
+            </button>
+
             <div className="text-4xl animate-bounce">🎉</div>
             <div>
               <span className="text-[10px] uppercase font-black tracking-widest text-amber-400">Promosi Jabatan PosIND</span>
@@ -897,10 +910,20 @@ export default function App() {
         </div>
       )}
 
-      {/* POPUP LAPORAN GAJI OFFLINE */}
+      {/* 3. POPUP LAPORAN GAJI OFFLINE DENGAN TOMBOL X */}
       {offlineReport && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#141E36] border-2 border-emerald-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow">
+          <div className="bg-[#141E36] border-2 border-emerald-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow relative">
+            
+            {/* Tombol Tutup X */}
+            <button
+              onClick={dismissOfflineReport}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              title="Tutup"
+            >
+              ✕
+            </button>
+
             <div className="text-4xl animate-bounce">💰</div>
             <div>
               <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Laporan Gaji Offline PosIND</span>
