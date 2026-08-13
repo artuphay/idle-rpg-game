@@ -39,6 +39,19 @@ export interface BigProject {
   completed: boolean;
 }
 
+export interface CatMascot {
+  id: string;
+  name: string;
+  title: string;
+  description: string;
+  icon: string;
+  cost: number;
+  owned: boolean;
+  goldMultiplier: number;
+  expMultiplier: number;
+  statBonus?: { sta: number; spd: number; tel: number };
+}
+
 export interface Achievement {
   id: string;
   title: string;
@@ -183,6 +196,76 @@ export const INITIAL_BIG_PROJECTS: BigProject[] = [
   },
 ];
 
+export const INITIAL_CATS: CatMascot[] = [
+  {
+    id: 'cat_oyen',
+    name: 'Oyen Tukang Sortir',
+    title: 'Maskot Utama',
+    description: 'Kucing oranye langganan nangkring di atas meja sortir kantor pos.',
+    icon: '🐈',
+    cost: 0,
+    owned: true,
+    goldMultiplier: 0,
+    expMultiplier: 0.15,
+  },
+  {
+    id: 'cat_belang',
+    name: 'Belang Kurir PosAja',
+    title: 'Kurir Cilik',
+    description: 'Suka ikut dibonceng di keranjang motor kurir keliling kota.',
+    icon: '🚚',
+    cost: 250000,
+    owned: false,
+    goldMultiplier: 0.20,
+    expMultiplier: 0.10,
+  },
+  {
+    id: 'cat_pospay',
+    name: 'Hitam Pospay Executive',
+    title: 'Kucing Hoki',
+    description: 'Sering rebahan hangat di atas mesin EDC Pospay meja loket.',
+    icon: '💳',
+    cost: 1500000,
+    owned: false,
+    goldMultiplier: 0.30,
+    expMultiplier: 0.25,
+  },
+  {
+    id: 'cat_persia',
+    name: 'Persia Dirut PosIND',
+    title: 'Ras Bangsawan',
+    description: 'Kucing ras mewah milik pimpinan kantor cabang utama.',
+    icon: '👑',
+    cost: 10000000,
+    owned: false,
+    goldMultiplier: 0.50,
+    expMultiplier: 0.40,
+  },
+  {
+    id: 'cat_calico',
+    name: 'Calico Satpam Pos',
+    title: 'Penjaga Gudang',
+    description: 'Menjaga gudang logistik malam hari dari tikus dan gangguan.',
+    icon: '🛡️',
+    cost: 50000000,
+    owned: false,
+    goldMultiplier: 0.50,
+    expMultiplier: 0.50,
+    statBonus: { sta: 5, spd: 5, tel: 5 },
+  },
+  {
+    id: 'cat_cosmic',
+    name: 'Oranye Cosmic PosAja',
+    title: 'Legenda Antar Planet',
+    description: 'Maskot legenda penerima paket ekspres lintas galaksi.',
+    icon: '🌌',
+    cost: 250000000,
+    owned: false,
+    goldMultiplier: 1.0,
+    expMultiplier: 1.0,
+  },
+];
+
 export const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: 'ach_task_10', title: '🚚 Kurir Pemula', description: 'Selesaikan 10 Tugas Kantor Pos', icon: '🚚', unlocked: false, expBonusMultiplier: 0.05 },
   { id: 'ach_task_50', title: '📦 Kurir Handal', description: 'Selesaikan 50 Tugas Kantor Pos', icon: '📦', unlocked: false, expBonusMultiplier: 0.10 },
@@ -324,17 +407,21 @@ interface GameState {
   shopItems: ShopItem[];
   bigProjects: BigProject[];
   achievements: Achievement[];
+  cats: CatMascot[];
+  activeCatId: string | null;
   activeProjectId: string | null;
 
-  // Prestige CBS (Cuti Besar) State
   cbsCount: number;
   cbsPoints: number;
   showCbsConfirmModal: boolean;
 
+  // Easter Egg Cheat Code Sequence State
+  cheatSequence: string[];
+
   totalTasksCompleted: number;
   totalEarnings: number;
 
-  activeTab: 'tasks' | 'projects' | 'shop' | 'stats';
+  activeTab: 'tasks' | 'projects' | 'cats' | 'shop' | 'stats';
 
   hideLocked: boolean;
   hideLowLevel: boolean;
@@ -346,22 +433,26 @@ interface GameState {
   timeUntilNextEvent: number;
   eventNotification: string | null;
 
-  // Offline Income State
+  showMiniGameModal: boolean;
+
   lastSaveTime: number;
   offlineReport: OfflineReport | null;
 
   floatingTextList: FloatingText[];
   levelUpCelebration: { newLevel: number } | null;
 
-  setActiveTab: (tab: 'tasks' | 'projects' | 'shop' | 'stats') => void;
+  setActiveTab: (tab: 'tasks' | 'projects' | 'cats' | 'shop' | 'stats') => void;
   setActiveTask: (taskId: string) => void;
   startBigProject: (projectId: string) => void;
   cancelBigProject: () => void;
   buyShopItem: (itemId: string) => void;
+  buyCatMascot: (catId: string) => void;
+  setActiveCat: (catId: string | null) => void;
   toggleHideLocked: () => void;
   toggleHideLowLevel: () => void;
   toggleSound: () => void;
   triggerPosBell: () => void;
+  pressStatCheat: (stat: 'sta' | 'spd' | 'tel') => void;
   setCategoryFilter: (cat: 'all' | 'Pekerjaan Pos' | 'Pelatihan Kerja') => void;
   resolveEventOption: (optionIndex: number) => void;
   closeCurrentEvent: () => void;
@@ -371,6 +462,9 @@ interface GameState {
   openCbsConfirmModal: () => void;
   closeCbsConfirmModal: () => void;
   executeCbs: () => void;
+  openMiniGameModal: () => void;
+  closeMiniGameModal: () => void;
+  finishMiniGame: (score: number) => void;
   checkOfflineIncome: () => void;
   gameTick: (deltaTime: number) => void;
 }
@@ -389,11 +483,15 @@ export const useGameStore = create<GameState>()(
       shopItems: INITIAL_SHOP,
       bigProjects: INITIAL_BIG_PROJECTS,
       achievements: INITIAL_ACHIEVEMENTS,
+      cats: INITIAL_CATS,
+      activeCatId: 'cat_oyen',
       activeProjectId: null,
 
       cbsCount: 0,
       cbsPoints: 0,
       showCbsConfirmModal: false,
+
+      cheatSequence: [],
 
       totalTasksCompleted: 0,
       totalEarnings: 0,
@@ -408,6 +506,8 @@ export const useGameStore = create<GameState>()(
       activeBuff: null,
       timeUntilNextEvent: 45,
       eventNotification: null,
+
+      showMiniGameModal: false,
 
       lastSaveTime: Date.now(),
       offlineReport: null,
@@ -427,23 +527,101 @@ export const useGameStore = create<GameState>()(
       openCbsConfirmModal: () => set({ showCbsConfirmModal: true }),
       closeCbsConfirmModal: () => set({ showCbsConfirmModal: false }),
 
+      // KODE CHEAT EASTER EGG: STA x5, SPD x2, TEL x5
+      pressStatCheat: (stat) => {
+        const { cheatSequence, maxExp, soundEnabled } = get();
+        const targetPattern = ['sta', 'sta', 'sta', 'sta', 'sta', 'spd', 'spd', 'tel', 'tel', 'tel', 'tel', 'tel'];
+        
+        const newSeq = [...cheatSequence, stat];
+        
+        let matches = true;
+        for (let i = 0; i < newSeq.length; i++) {
+          if (newSeq[i] !== targetPattern[i]) {
+            matches = false;
+            break;
+          }
+        }
+
+        if (!matches) {
+          set({ cheatSequence: stat === 'sta' ? ['sta'] : [] });
+          return;
+        }
+
+        if (newSeq.length === targetPattern.length) {
+          if (soundEnabled) playPosBellSound();
+          set({
+            gold: 1000000000, // 1 Milyar Rp
+            exp: maxExp, // Full EXP
+            stats: { sta: 999, spd: 999, tel: 999 },
+            cheatSequence: [],
+            eventNotification: '🔓 EASTER EGG UNLOCKED! Kode Rahasia PosIND Diaktifkan! (+Rp 1 Milyar, 999 All Stats, & Full EXP)! 🚀',
+          });
+        } else {
+          set({ cheatSequence: newSeq });
+        }
+      },
+
+      openMiniGameModal: () => set({ showMiniGameModal: true }),
+      closeMiniGameModal: () => set({ showMiniGameModal: false }),
+
+      finishMiniGame: (score) => {
+        const state = get();
+        const goldReward = score * 50000 * Math.max(1, Math.floor(state.level / 2));
+        const expReward = score * 30;
+
+        if (state.soundEnabled) playPosBellSound();
+
+        set({
+          gold: state.gold + goldReward,
+          exp: state.exp + expReward,
+          totalEarnings: state.totalEarnings + goldReward,
+          showMiniGameModal: false,
+          eventNotification: `🎮 Mini-Game Selesai! Skor: ${score} Paket | Hadiah: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(goldReward)} & +${expReward} EXP!`,
+        });
+      },
+
+      buyCatMascot: (catId) => {
+        const { gold, cats, soundEnabled } = get();
+        const cat = cats.find((c) => c.id === catId);
+        if (!cat || cat.owned || gold < cat.cost) return;
+
+        if (soundEnabled) playPosBellSound();
+
+        let updatedStats = { ...get().stats };
+        if (cat.statBonus) {
+          updatedStats.sta += cat.statBonus.sta;
+          updatedStats.spd += cat.statBonus.spd;
+          updatedStats.tel += cat.statBonus.tel;
+        }
+
+        set({
+          gold: gold - cat.cost,
+          stats: updatedStats,
+          cats: cats.map((c) => (c.id === catId ? { ...c, owned: true } : c)),
+          activeCatId: catId,
+          eventNotification: `🐱 Selamat! Kucing "${cat.name}" berhasil diadopsi dan aktif sebagai maskot!`,
+        });
+      },
+
+      setActiveCat: (catId) => {
+        set({ activeCatId: catId });
+      },
+
       executeCbs: () => {
         const state = get();
         if (state.level < 15) return;
 
-        // Poin CBS Didapat = (Level - 14) * 2
         const pointsGained = (state.level - 14) * 2;
         const newCbsCount = state.cbsCount + 1;
         const newCbsPoints = state.cbsPoints + pointsGained;
 
         if (state.soundEnabled) playPosBellSound();
 
-        // Reset Karir dengan Bonus Multiplier & Base Stats Lebih Kuat
         set({
           level: 1,
           exp: 0,
           maxExp: 100,
-          gold: 50000, // Uang Saku Cuti Besar
+          gold: 50000,
           stats: {
             sta: 10 + newCbsCount * 2,
             spd: 10 + newCbsCount * 2,
@@ -483,12 +661,16 @@ export const useGameStore = create<GameState>()(
         const effectiveOfflineSeconds = Math.min(offlineSeconds, 8 * 3600);
         const currentTask = INITIAL_TASKS.find((t) => t.id === state.activeTaskId) || INITIAL_TASKS[0];
 
+        const activeCat = state.cats.find((c) => c.id === state.activeCatId && c.owned);
+        const catGoldBonus = activeCat ? activeCat.goldMultiplier : 0;
+        const catExpBonus = activeCat ? activeCat.expMultiplier : 0;
+
         const shopBonus = state.shopItems.filter((i) => i.owned).reduce((sum, i) => sum + i.expMultiplierBonus, 0);
         const achBonus = state.achievements.filter((a) => a.unlocked).reduce((sum, a) => sum + a.expBonusMultiplier, 0);
         const cbsExpBonus = state.cbsPoints * 0.20;
-        const totalExpBonus = 1.0 + shopBonus + achBonus + cbsExpBonus;
+        const totalExpBonus = 1.0 + shopBonus + achBonus + cbsExpBonus + catExpBonus;
 
-        const cbsGoldMultiplier = 1.0 + (state.cbsPoints * 0.25);
+        const cbsGoldMultiplier = 1.0 + (state.cbsPoints * 0.25) + catGoldBonus;
         const goldPerSec = (currentTask.rewardGold / currentTask.duration) * cbsGoldMultiplier;
         const expPerSec = (currentTask.rewardExp / currentTask.duration) * totalExpBonus;
 
@@ -600,7 +782,7 @@ export const useGameStore = create<GameState>()(
 
       gameTick: (deltaTime) => {
         const state = get();
-        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, cbsPoints, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
+        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, cats, activeCatId, cbsPoints, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
 
         const now = Date.now();
         let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
@@ -643,9 +825,12 @@ export const useGameStore = create<GameState>()(
           }
         }
 
-        // Multipliers dari Cuti Besar (CBS)
-        const cbsGoldMultiplier = 1.0 + (cbsPoints * 0.25);
-        const cbsExpMultiplier = 1.0 + (cbsPoints * 0.20);
+        const activeCat = cats.find((c) => c.id === activeCatId && c.owned);
+        const catGoldBonus = activeCat ? activeCat.goldMultiplier : 0;
+        const catExpBonus = activeCat ? activeCat.expMultiplier : 0;
+
+        const cbsGoldMultiplier = 1.0 + (cbsPoints * 0.25) + catGoldBonus;
+        const cbsExpMultiplier = 1.0 + (cbsPoints * 0.20) + catExpBonus;
 
         let updatedBigProjects = [...bigProjects];
         let nextActiveProjectId = activeProjectId;

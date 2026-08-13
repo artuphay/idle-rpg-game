@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { useGameStore, INITIAL_TASKS } from './store/useGameStore';
 import { initAudioUnlock } from './utils/audio';
 
+const CITIES = [
+  { name: 'Jakarta', code: '10110' },
+  { name: 'Bandung', code: '40111' },
+  { name: 'Surabaya', code: '60111' },
+  { name: 'Medan', code: '20111' },
+];
+
 export default function App() {
   const {
     level,
@@ -14,9 +21,12 @@ export default function App() {
     shopItems,
     bigProjects,
     achievements,
+    cats,
+    activeCatId,
     cbsCount,
     cbsPoints,
     showCbsConfirmModal,
+    showMiniGameModal,
     activeProjectId,
     activeTab,
     totalTasksCompleted,
@@ -37,10 +47,13 @@ export default function App() {
     startBigProject,
     cancelBigProject,
     buyShopItem,
+    buyCatMascot,
+    setActiveCat,
     toggleHideLocked,
     toggleHideLowLevel,
     toggleSound,
     triggerPosBell,
+    pressStatCheat,
     setCategoryFilter,
     resolveEventOption,
     closeCurrentEvent,
@@ -50,11 +63,19 @@ export default function App() {
     openCbsConfirmModal,
     closeCbsConfirmModal,
     executeCbs,
+    openMiniGameModal,
+    closeMiniGameModal,
+    finishMiniGame,
     checkOfflineIncome,
     gameTick,
   } = useGameStore();
 
   const [activeStatTooltip, setActiveStatTooltip] = useState<'sta' | 'spd' | 'tel' | null>(null);
+
+  // State Mini Game
+  const [miniGameTimer, setMiniGameTimer] = useState(15);
+  const [miniGameScore, setMiniGameScore] = useState(0);
+  const [targetCity, setTargetCity] = useState(CITIES[0]);
 
   useEffect(() => {
     initAudioUnlock();
@@ -65,6 +86,32 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, [gameTick, checkOfflineIncome]);
+
+  useEffect(() => {
+    let timer: any;
+    if (showMiniGameModal && miniGameTimer > 0) {
+      timer = setInterval(() => {
+        setMiniGameTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (showMiniGameModal && miniGameTimer === 0) {
+      finishMiniGame(miniGameScore);
+    }
+    return () => clearInterval(timer);
+  }, [showMiniGameModal, miniGameTimer, miniGameScore, finishMiniGame]);
+
+  const handleStartMiniGame = () => {
+    setMiniGameTimer(15);
+    setMiniGameScore(0);
+    setTargetCity(CITIES[Math.floor(Math.random() * CITIES.length)]);
+    openMiniGameModal();
+  };
+
+  const handleCityClick = (cityName: string) => {
+    if (cityName === targetCity.name) {
+      setMiniGameScore((prev) => prev + 1);
+    }
+    setTargetCity(CITIES[Math.floor(Math.random() * CITIES.length)]);
+  };
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -96,6 +143,8 @@ export default function App() {
     if (lvl < 25) return 'VP Corporate Strategy PosIND';
     return 'Direktur Utama PosIND';
   };
+
+  const activeCat = cats.find((c) => c.id === activeCatId && c.owned);
 
   const activeShopMultiplier = shopItems
     .filter((i) => i.owned)
@@ -131,14 +180,19 @@ export default function App() {
   const currentWorkRate = (stats.sta * 1.5) + (stats.spd * 2.0) + (stats.tel * 2.5);
   const potentialCbsPoints = level >= 15 ? (level - 14) * 2 : 0;
 
+  const handleStatClick = (stat: 'sta' | 'spd' | 'tel') => {
+    setActiveStatTooltip(activeStatTooltip === stat ? null : stat);
+    pressStatCheat(stat); // Memicu Pengecekan Cheat Code
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
-        {/* NOTIFIKASI EVENT / LENCANA / CBS */}
+        {/* NOTIFIKASI EVENT / CHEAT */}
         {eventNotification && (
           <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3 sm:p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
-            <span className="pr-2">📢 {eventNotification}</span>
+            <span className="pr-2 font-bold">📢 {eventNotification}</span>
             <button
               onClick={dismissEventNotification}
               className="bg-orange-500 text-slate-950 px-2.5 py-1 rounded-lg font-black text-[10px] hover:bg-orange-400 transition whitespace-nowrap"
@@ -152,11 +206,17 @@ export default function App() {
         <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-6 text-center shadow-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-orange-500 to-blue-600"></div>
 
-          {/* Tombol Klakson & Mute Suara */}
+          {/* Tombol Mini Game & Klakson Pos */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2">
             <button
+              onClick={handleStartMiniGame}
+              className="bg-gradient-to-r from-orange-500 to-amber-500 hover:brightness-110 text-slate-950 text-[10px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl font-black transition shadow-md active:scale-95"
+            >
+              🎮 Mini-Game 15s
+            </button>
+            <button
               onClick={triggerPosBell}
-              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-[10px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md active:scale-95"
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-[10px] sm:text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md active:scale-95"
               title="Bunyikan Bel Sepeda Pos"
             >
               🔔 <span className="hidden sm:inline">Klakson Pos</span>
@@ -188,7 +248,7 @@ export default function App() {
             Artuphay Gabut di Pos Indonesia
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, Beli Aset, & Ambil Cuti Besar (CBS)!
+            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, Rawat Kucing, & Beli Aset Logistik!
           </p>
 
           {/* Navigation Tabs */}
@@ -212,6 +272,16 @@ export default function App() {
               }`}
             >
               💼 Proyek Besar
+            </button>
+            <button
+              onClick={() => setActiveTab('cats')}
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+                activeTab === 'cats'
+                  ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
+                  : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
+              }`}
+            >
+              🐱 Maskot Kucing
             </button>
             <button
               onClick={() => setActiveTab('shop')}
@@ -269,23 +339,12 @@ export default function App() {
                   style={{ width: `${Math.min((exp / maxExp) * 100, 100)}%` }}
                 ></div>
               </div>
-              {totalExpMultiplier > 0 && (
-                <p className="text-[10px] text-emerald-400 mt-1 font-semibold text-right">
-                  ⚡ +{(totalExpMultiplier * 100).toFixed(0)}% Bonus EXP Karir
-                </p>
-              )}
             </div>
 
             {/* Total Gaji / Uang DENGAN ANIMASI TEKS MELAYANG */}
             <div className="bg-[#0A0F1D] p-3 rounded-xl border border-orange-500/20 relative">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gaji / Uang Terkumpul</p>
               <p className="text-xl font-black text-emerald-400 mt-0.5">{formatRupiah(gold)}</p>
-
-              {cbsGoldBonusMultiplier > 0 && (
-                <p className="text-[9px] text-amber-400 font-bold mt-0.5">
-                  🔥 Bonus CBS Gaji: +{(cbsGoldBonusMultiplier * 100).toFixed(0)}%
-                </p>
-              )}
 
               <div className="absolute top-2 right-3 pointer-events-none flex flex-col items-end">
                 {floatingTextList.map((item) => (
@@ -298,6 +357,17 @@ export default function App() {
                 ))}
               </div>
             </div>
+
+            {/* MASKOT KUCING AKTIF SIDEBAR */}
+            {activeCat && (
+              <div className="bg-[#0A0F1D] p-3 rounded-xl border border-amber-500/40 flex items-center gap-3">
+                <span className="text-2xl">{activeCat.icon}</span>
+                <div>
+                  <span className="text-[9px] text-amber-400 font-extrabold uppercase tracking-wider block">Maskot Aktif</span>
+                  <p className="text-xs font-bold text-white leading-tight">{activeCat.name}</p>
+                </div>
+              </div>
+            )}
 
             {/* Widget Status Event / Buff */}
             <div className="bg-[#0A0F1D] p-3 rounded-xl border border-[#23335A]">
@@ -326,7 +396,7 @@ export default function App() {
               )}
             </div>
 
-            {/* Atribut Skill Pos */}
+            {/* Atribut Skill Pos DENGAN PENANGANAN KLIK CHEAT EASTER EGG */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -339,10 +409,10 @@ export default function App() {
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 {/* STA */}
                 <div
-                  onClick={() => setActiveStatTooltip(activeStatTooltip === 'sta' ? null : 'sta')}
+                  onClick={() => handleStatClick('sta')}
                   onMouseEnter={() => setActiveStatTooltip('sta')}
                   onMouseLeave={() => setActiveStatTooltip(null)}
-                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative ${
+                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative active:scale-90 ${
                     activeStatTooltip === 'sta' ? 'bg-[#1E2D50] border-orange-500 scale-105 shadow-md z-20' : 'bg-[#0A0F1D] border-[#23335A] hover:border-orange-500/50'
                   }`}
                 >
@@ -363,10 +433,10 @@ export default function App() {
 
                 {/* SPD */}
                 <div
-                  onClick={() => setActiveStatTooltip(activeStatTooltip === 'spd' ? null : 'spd')}
+                  onClick={() => handleStatClick('spd')}
                   onMouseEnter={() => setActiveStatTooltip('spd')}
                   onMouseLeave={() => setActiveStatTooltip(null)}
-                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative ${
+                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative active:scale-90 ${
                     activeStatTooltip === 'spd' ? 'bg-[#1E2D50] border-orange-500 scale-105 shadow-md z-20' : 'bg-[#0A0F1D] border-[#23335A] hover:border-orange-500/50'
                   }`}
                 >
@@ -387,10 +457,10 @@ export default function App() {
 
                 {/* TEL */}
                 <div
-                  onClick={() => setActiveStatTooltip(activeStatTooltip === 'tel' ? null : 'tel')}
+                  onClick={() => handleStatClick('tel')}
                   onMouseEnter={() => setActiveStatTooltip('tel')}
                   onMouseLeave={() => setActiveStatTooltip(null)}
-                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative ${
+                  className={`p-2.5 rounded-xl border transition-all cursor-pointer relative active:scale-90 ${
                     activeStatTooltip === 'tel' ? 'bg-[#1E2D50] border-orange-500 scale-105 shadow-md z-20' : 'bg-[#0A0F1D] border-[#23335A] hover:border-orange-500/50'
                   }`}
                 >
@@ -697,7 +767,102 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 3: TOKO ASET */}
+            {/* TAB 3: MASKOT KUCING POS */}
+            {activeTab === 'cats' && (
+              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+                <div className="border-b border-[#23335A] pb-3">
+                  <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">
+                    Adopsi Maskot Kucing Kantor Pos
+                  </h2>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Pilih 1 Kucing Aktif untuk mendampingi kerja dan memberikan bonus multiplier gaji/EXP!
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
+                  {cats.map((cat) => {
+                    const canAfford = gold >= cat.cost;
+                    const isActive = activeCatId === cat.id && cat.owned;
+
+                    return (
+                      <div
+                        key={cat.id}
+                        className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                          isActive
+                            ? 'bg-[#1E2D50] border-amber-400 shadow-xl animate-glow'
+                            : cat.owned
+                            ? 'bg-[#0A0F1D]/80 border-[#23335A]'
+                            : 'bg-[#0A0F1D]/40 border-[#1C2B4E] opacity-70'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2.5 mb-2">
+                            <span className="text-3xl p-2 bg-[#0A0F1D] rounded-xl border border-[#23335A] shrink-0">
+                              {cat.icon}
+                            </span>
+                            <div>
+                              <h4 className="font-extrabold text-white text-xs sm:text-sm leading-tight">{cat.name}</h4>
+                              <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
+                                {cat.title}
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="text-[10px] text-slate-400 italic leading-relaxed">{cat.description}</p>
+
+                          <div className="mt-2.5 pt-2 border-t border-[#23335A]/50 space-y-1 text-[10px] font-bold">
+                            {cat.goldMultiplier > 0 && (
+                              <p className="text-emerald-400">💰 +{(cat.goldMultiplier * 100).toFixed(0)}% Multiplier Gaji</p>
+                            )}
+                            {cat.expMultiplier > 0 && (
+                              <p className="text-orange-400">⚡ +{(cat.expMultiplier * 100).toFixed(0)}% Multiplier EXP</p>
+                            )}
+                            {cat.statBonus && (
+                              <p className="text-blue-300">
+                                🛡️ +{cat.statBonus.sta} STA, +{cat.statBonus.spd} SPD, +{cat.statBonus.tel} TEL
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t border-[#23335A]/50 flex justify-between items-center">
+                          <span className="text-xs font-black text-emerald-400">
+                            {cat.cost === 0 ? 'Gratis' : formatRupiah(cat.cost)}
+                          </span>
+
+                          {isActive ? (
+                            <span className="text-[10px] font-extrabold text-amber-400 bg-amber-950/80 border border-amber-800 px-2.5 py-1 rounded-lg">
+                              ★ Maskot Aktif
+                            </span>
+                          ) : cat.owned ? (
+                            <button
+                              onClick={() => setActiveCat(cat.id)}
+                              className="px-3 py-1 text-xs font-bold bg-[#1E2D50] hover:bg-orange-500 hover:text-slate-950 text-white rounded-lg transition active:scale-95 border border-[#304573]"
+                            >
+                              Pilih Maskot
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => buyCatMascot(cat.id)}
+                              disabled={!canAfford}
+                              className={`px-3 py-1 text-xs font-black rounded-lg transition active:scale-95 ${
+                                canAfford
+                                  ? 'bg-orange-500 hover:bg-orange-400 text-slate-950 shadow-md'
+                                  : 'bg-[#0A0F1D] text-slate-500 cursor-not-allowed border border-[#23335A]'
+                              }`}
+                            >
+                              Adopsi
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: TOKO ASET */}
             {activeTab === 'shop' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
@@ -772,7 +937,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 4: STATISTIK, LENCANA & CUTI BESAR (CBS) */}
+            {/* TAB 5: STATISTIK, LENCANA & CUTI BESAR (CBS) */}
             {activeTab === 'stats' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
@@ -798,7 +963,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Multiplier Efek CBS Aktif */}
                   <div className="grid grid-cols-2 gap-2 text-center text-xs">
                     <div className="bg-[#0A0F1D]/80 p-2 rounded-xl border border-[#23335A]">
                       <span className="text-[10px] text-slate-400 block font-semibold">Bonus Multiplier Gaji</span>
@@ -814,7 +978,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Tombol Ambil CBS */}
                   <div className="flex justify-between items-center pt-2 border-t border-[#23335A]">
                     <span className="text-[10px] text-slate-300 font-semibold">
                       {level >= 15 ? (
@@ -838,7 +1001,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Ringkasan Statistik */}
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A]">
                     <p className="text-[10px] text-slate-400 font-semibold">Total Tugas Diselesaikan</p>
@@ -895,7 +1057,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Aset Terbeli */}
                 <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] mt-3">
                   <h3 className="text-xs font-bold text-white mb-2">Aset Terbeli:</h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -921,7 +1082,48 @@ export default function App() {
         </div>
       </div>
 
-      {/* 1. POPUP MODAL EVENT ACAK */}
+      {/* POPUP MODAL MINI GAME SORTIR KILAT (15 DETIK) */}
+      {showMiniGameModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 relative">
+            
+            <button
+              onClick={closeMiniGameModal}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              title="Tutup"
+            >
+              ✕
+            </button>
+
+            <div className="flex justify-between items-center border-b border-[#23335A] pb-2">
+              <span className="text-xs font-bold text-orange-400">⏱️ Sisa: {miniGameTimer}s</span>
+              <span className="text-xs font-black text-emerald-400">Skor: {miniGameScore} Paket</span>
+            </div>
+
+            <div className="bg-[#0A0F1D] p-4 rounded-xl border border-orange-500/50 space-y-1">
+              <span className="text-[10px] text-slate-400 font-semibold uppercase">Paket Tujuan:</span>
+              <p className="text-xl font-black text-orange-400 uppercase tracking-widest">{targetCity.name}</p>
+              <p className="text-xs text-slate-400 font-mono">Kode Pos: {targetCity.code}</p>
+            </div>
+
+            <p className="text-[11px] text-slate-300">Pilih kotak kota yang tepat secepat mungkin!</p>
+
+            <div className="grid grid-cols-2 gap-2">
+              {CITIES.map((city) => (
+                <button
+                  key={city.name}
+                  onClick={() => handleCityClick(city.name)}
+                  className="py-3 bg-[#1E2D50] hover:bg-orange-500 hover:text-slate-950 border border-[#304573] text-slate-100 font-black text-xs rounded-xl transition active:scale-95 shadow-md"
+                >
+                  {city.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL EVENT ACAK */}
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
@@ -956,7 +1158,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 2. POPUP SELEBRASI LEVEL UP JABATAN */}
+      {/* POPUP SELEBRASI LEVEL UP JABATAN */}
       {levelUpCelebration && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#141E36] border-2 border-amber-400 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow relative">
@@ -989,7 +1191,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. POPUP LAPORAN GAJI OFFLINE */}
+      {/* POPUP LAPORAN GAJI OFFLINE */}
       {offlineReport && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#141E36] border-2 border-emerald-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow relative">
@@ -1026,7 +1228,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 4. POPUP MODAL KONFIRMASI CUTI BESAR (CBS) */}
+      {/* POPUP MODAL KONFIRMASI CUTI BESAR (CBS) */}
       {showCbsConfirmModal && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#141E36] border-2 border-amber-500 rounded-2xl max-w-xs sm:max-w-md w-full p-6 shadow-2xl space-y-4 relative">
@@ -1042,15 +1244,15 @@ export default function App() {
               <span className="text-4xl block animate-bounce">🏖️</span>
               <h3 className="text-lg font-black text-amber-400 mt-2">Ambil Cuti Besar (CBS)?</h3>
               <p className="text-xs text-slate-300 mt-1">
-                Anda akan mendapatkan <span className="text-amber-400 font-extrabold">+{potentialCbsPoints} Poin CBS</span> secara permanen!
+                Anda akan mendapatkan <span className="text-amber-400 font-extrabold">+{(level - 14) * 2} Poin CBS</span> secara permanen!
               </p>
             </div>
 
-            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-amber-500/30 text-xs space-y-2 text-slate-300">
+            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-amber-500/30 text-xs space-y-2 text-slate-30 border-amber-500/30 text-xs space-y-2 text-slate-300">
               <p className="font-bold text-white border-b border-[#23335A] pb-1.5">Manfaat Cuti Besar (CBS):</p>
               <ul className="space-y-1 text-[11px]">
-                <li className="text-emerald-400 font-bold">✓ Multiplier Gaji Permanen: +{(potentialCbsPoints * 25)}%</li>
-                <li className="text-orange-400 font-bold">✓ Multiplier EXP Permanen: +{(potentialCbsPoints * 20)}%</li>
+                <li className="text-emerald-400 font-bold">✓ Multiplier Gaji Permanen: +{((level - 14) * 2 * 25)}%</li>
+                <li className="text-orange-400 font-bold">✓ Multiplier EXP Permanen: +{((level - 14) * 2 * 20)}%</li>
                 <li className="text-blue-300 font-bold">✓ Base Stat Baru: +2 STA, +2 SPD, +2 TEL</li>
                 <li className="text-yellow-400 font-bold">✓ Uang Saku Cuti: Rp 50.000</li>
                 <li className="text-slate-400 italic">⚠️ Level karir & aset toko akan direset ke Lv. 1</li>
