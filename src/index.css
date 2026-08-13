@@ -2,22 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Scrollbar khusus di dalam Box Pekerjaan */
+/* Custom Scrollbar Tipis & Modern */
 .custom-scroll::-webkit-scrollbar {
   width: 6px;
 }
-
 .custom-scroll::-webkit-scrollbar-track {
   background: #0E1527;
   border-radius: 9999px;
 }
-
 .custom-scroll::-webkit-scrollbar-thumb {
   background: #23335A;
   border-radius: 9999px;
   border: 1px solid #141E36;
 }
-
 .custom-scroll::-webkit-scrollbar-thumb:hover {
   background: #f97316;
 }
@@ -26,4 +23,38 @@
 .custom-scroll {
   scrollbar-width: thin;
   scrollbar-color: #23335A #0E1527;
+}
+
+/* Keyframe Animasi Teks Melayang (+Rp / +EXP) */
+@keyframes floatUpFade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-25px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scale(1);
+  }
+}
+
+.animate-float-up {
+  animation: floatUpFade 1.2s ease-out forwards;
+}
+
+/* Keyframe Sinar Pulse */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(249, 115, 22, 0.6);
+  }
+}
+
+.animate-glow {
+  animation: pulseGlow 2s infinite;
 }

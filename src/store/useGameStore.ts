@@ -70,6 +70,12 @@ export interface RandomEvent {
   options: EventOption[];
 }
 
+export interface FloatingText {
+  id: number;
+  text: string;
+  color: string;
+}
+
 export const INITIAL_TASKS: Task[] = [
   { id: 'job_label', name: 'Cetak & Tempel Resi Paket', category: 'Pekerjaan Pos', duration: 1.5, reqLevel: 1, rewardGold: 10000, rewardExp: 8 },
   { id: 'job_sort', name: 'Sortir Surat & Paket Muka', category: 'Pekerjaan Pos', duration: 2.5, reqLevel: 1, rewardGold: 20000, rewardExp: 15 },
@@ -308,6 +314,10 @@ interface GameState {
   timeUntilNextEvent: number;
   eventNotification: string | null;
 
+  // Visual Animation State
+  floatingTextList: FloatingText[];
+  levelUpCelebration: { newLevel: number } | null;
+
   setActiveTab: (tab: 'tasks' | 'projects' | 'shop' | 'stats') => void;
   setActiveTask: (taskId: string) => void;
   startBigProject: (projectId: string) => void;
@@ -321,6 +331,7 @@ interface GameState {
   resolveEventOption: (optionIndex: number) => void;
   closeCurrentEvent: () => void;
   dismissEventNotification: () => void;
+  dismissLevelUpCelebration: () => void;
   gameTick: (deltaTime: number) => void;
 }
 
@@ -353,6 +364,9 @@ export const useGameStore = create<GameState>()(
       timeUntilNextEvent: 45,
       eventNotification: null,
 
+      floatingTextList: [],
+      levelUpCelebration: null,
+
       setActiveTab: (tab) => set({ activeTab: tab }),
       toggleHideLocked: () => set((state) => ({ hideLocked: !state.hideLocked })),
       toggleHideLowLevel: () => set((state) => ({ hideLowLevel: !state.hideLowLevel })),
@@ -360,6 +374,7 @@ export const useGameStore = create<GameState>()(
       setCategoryFilter: (cat) => set({ categoryFilter: cat }),
       dismissEventNotification: () => set({ eventNotification: null }),
       closeCurrentEvent: () => set({ currentEvent: null }),
+      dismissLevelUpCelebration: () => set({ levelUpCelebration: null }),
 
       triggerPosBell: () => {
         if (get().soundEnabled) {
@@ -450,7 +465,10 @@ export const useGameStore = create<GameState>()(
 
       gameTick: (deltaTime) => {
         const state = get();
-        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, soundEnabled } = state;
+        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
+
+        // Bersihkan Teks Melayang yang Sudah Usang (Max 4 item)
+        let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
 
         let nextEventTimer = timeUntilNextEvent - deltaTime;
         let nextCurrentEvent = currentEvent;
@@ -498,6 +516,12 @@ export const useGameStore = create<GameState>()(
               bonusGoldFromProj = proj.rewardGold;
               bonusExpFromProj = proj.rewardExp;
 
+              newFloatingList.push({
+                id: Date.now(),
+                text: `+${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(proj.rewardGold)}`,
+                color: 'text-emerald-400',
+              });
+
               set({
                 eventNotification: `🎉 SELAMAT! Proyek Besar "${proj.name}" Berhasil Diselesaikan! Hadiah: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(proj.rewardGold)}!`,
               });
@@ -530,6 +554,7 @@ export const useGameStore = create<GameState>()(
             timeUntilNextEvent: nextEventTimer,
             currentEvent: nextCurrentEvent,
             activeBuff: nextBuff,
+            floatingTextList: newFloatingList,
           });
           return;
         }
@@ -548,9 +573,20 @@ export const useGameStore = create<GameState>()(
         const nextProgress = taskProgress + progressIncrement;
 
         if (nextProgress >= 100) {
-          let newGold = gold + bonusGoldFromProj + Math.floor(currentTask.rewardGold * goldBuffMult);
-          let newExp = exp + bonusExpFromProj + Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
+          const earnedGold = Math.floor(currentTask.rewardGold * goldBuffMult);
+          const earnedExp = Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
+
+          let newGold = gold + bonusGoldFromProj + earnedGold;
+          let newExp = exp + bonusExpFromProj + earnedExp;
           let newStats = { ...stats };
+
+          if (earnedGold > 0) {
+            newFloatingList.push({
+              id: Date.now(),
+              text: `+${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(earnedGold)}`,
+              color: 'text-emerald-400',
+            });
+          }
 
           if (currentTask.rewardStat) {
             const { type, amount } = currentTask.rewardStat;
@@ -559,11 +595,15 @@ export const useGameStore = create<GameState>()(
 
           let newLevel = level;
           let newMaxExp = maxExp;
+          let showLevelUp = state.levelUpCelebration;
 
           if (newExp >= maxExp) {
             newExp -= maxExp;
             newLevel += 1;
             newMaxExp = Math.floor(maxExp * 1.5);
+            showLevelUp = { newLevel };
+
+            if (soundEnabled) playPosBellSound();
           }
 
           set({
@@ -580,6 +620,8 @@ export const useGameStore = create<GameState>()(
             timeUntilNextEvent: nextEventTimer,
             currentEvent: nextCurrentEvent,
             activeBuff: nextBuff,
+            floatingTextList: newFloatingList,
+            levelUpCelebration: showLevelUp,
           });
         } else {
           set({
@@ -591,6 +633,7 @@ export const useGameStore = create<GameState>()(
             timeUntilNextEvent: nextEventTimer,
             currentEvent: nextCurrentEvent,
             activeBuff: nextBuff,
+            floatingTextList: newFloatingList,
           });
         }
       },

@@ -25,6 +25,8 @@ export default function App() {
     activeBuff,
     timeUntilNextEvent,
     eventNotification,
+    floatingTextList,
+    levelUpCelebration,
     setActiveTab,
     setActiveTask,
     startBigProject,
@@ -38,6 +40,7 @@ export default function App() {
     resolveEventOption,
     closeCurrentEvent,
     dismissEventNotification,
+    dismissLevelUpCelebration,
     gameTick,
   } = useGameStore();
 
@@ -97,7 +100,7 @@ export default function App() {
   const currentWorkRate = (stats.sta * 1.5) + (stats.spd * 2.0) + (stats.tel * 2.5);
 
   return (
-    <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative">
+    <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
         {/* NOTIFIKASI EVENT */}
@@ -121,14 +124,14 @@ export default function App() {
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={triggerPosBell}
-              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-[10px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md"
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-[10px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md active:scale-95"
               title="Bunyikan Bel Sepeda Pos"
             >
               🔔 <span className="hidden sm:inline">Klakson Pos</span>
             </button>
             <button
               onClick={toggleSound}
-              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] text-slate-300 text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl font-bold transition"
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] text-slate-300 text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl font-bold transition active:scale-95"
               title={soundEnabled ? 'Matikan Suara' : 'Nyalakan Suara'}
             >
               {soundEnabled ? '🔊' : '🔇'}
@@ -160,7 +163,7 @@ export default function App() {
           <div className="grid grid-cols-2 sm:flex sm:justify-center gap-2 mt-4">
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'tasks'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -170,7 +173,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('projects')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'projects'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -180,7 +183,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('shop')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'shop'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -190,7 +193,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('stats')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'stats'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -204,7 +207,7 @@ export default function App() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           
           {/* Panel Profil Pegawai Sidebar */}
-          <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl h-fit space-y-4">
+          <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl h-fit space-y-4 relative">
             <div className="border-b border-[#23335A] pb-3">
               <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Jabatan Karir</h2>
               <p className="text-xs text-blue-300 font-extrabold mt-0.5">{getJobTitle(level)}</p>
@@ -234,10 +237,22 @@ export default function App() {
               )}
             </div>
 
-            {/* Total Gaji / Uang */}
-            <div className="bg-[#0A0F1D] p-3 rounded-xl border border-orange-500/20">
+            {/* Total Gaji / Uang DENGAN ANIMASI TEKS MELAYANG */}
+            <div className="bg-[#0A0F1D] p-3 rounded-xl border border-orange-500/20 relative">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gaji / Uang Terkumpul</p>
               <p className="text-xl font-black text-emerald-400 mt-0.5">{formatRupiah(gold)}</p>
+
+              {/* RENDER FLOATING GAIN TEXT ANIMATION */}
+              <div className="absolute top-2 right-3 pointer-events-none flex flex-col items-end">
+                {floatingTextList.map((item) => (
+                  <span
+                    key={item.id}
+                    className={`text-xs font-black animate-float-up ${item.color}`}
+                  >
+                    {item.text}
+                  </span>
+                ))}
+              </div>
             </div>
 
             {/* Widget Status Event / Buff */}
@@ -460,7 +475,7 @@ export default function App() {
                           key={task.id}
                           className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
                             isActive
-                              ? 'bg-[#1E2D50] border-orange-500 shadow-md'
+                              ? 'bg-[#1E2D50] border-orange-500 shadow-lg animate-glow'
                               : isUnlocked
                               ? 'bg-[#0A0F1D]/60 border-[#23335A] hover:border-slate-500'
                               : 'bg-[#0A0F1D]/30 border-[#1C2B4E] opacity-60'
@@ -497,7 +512,7 @@ export default function App() {
                               <button
                                 onClick={() => setActiveTask(task.id)}
                                 disabled={isActive}
-                                className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 ${
+                                className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 active:scale-95 ${
                                   isActive
                                     ? 'bg-orange-500 text-slate-950 font-black cursor-default'
                                     : 'bg-[#1E2D50] hover:bg-orange-600 hover:text-white text-slate-200 border border-[#304573]'
@@ -547,7 +562,7 @@ export default function App() {
                         key={proj.id}
                         className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
                           isRunning
-                            ? 'bg-[#1E2D50] border-orange-500 shadow-xl'
+                            ? 'bg-[#1E2D50] border-orange-500 shadow-xl animate-glow'
                             : proj.completed
                             ? 'bg-emerald-950/20 border-emerald-800/50'
                             : isUnlocked && hasStats
@@ -555,7 +570,6 @@ export default function App() {
                             : 'bg-[#0A0F1D]/30 border-[#1C2B4E] opacity-60'
                         }`}
                       >
-                        {/* Header Proyek */}
                         <div className="flex justify-between items-start gap-2 border-b border-[#23335A]/50 pb-2">
                           <div>
                             <h3 className="font-extrabold text-white text-xs sm:text-sm leading-snug">{proj.name}</h3>
@@ -567,7 +581,6 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Badges Syarat Stat */}
                         <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
                           <div className="flex flex-wrap gap-1.5">
                             <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.sta >= proj.reqStats.sta ? 'bg-red-950/80 text-red-300 border border-red-800' : 'bg-slate-900 text-slate-500'}`}>
@@ -584,7 +597,6 @@ export default function App() {
                           <span className="text-[10px] text-slate-400 font-semibold">⏱️ {proj.timeLimit}s</span>
                         </div>
 
-                        {/* Progress Bar Proyek Berjalan */}
                         {isRunning && (
                           <div className="mt-3 space-y-1.5 bg-[#0A0F1D] p-2.5 rounded-lg border border-orange-500/50">
                             <div className="flex justify-between text-[11px] font-bold">
@@ -602,7 +614,6 @@ export default function App() {
                           </div>
                         )}
 
-                        {/* Tombol Eksekusi Informatif */}
                         <div className="mt-3 pt-2 border-t border-[#23335A]/50 flex justify-end items-center">
                           {proj.completed ? (
                             <span className="text-xs font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-lg">
@@ -611,7 +622,7 @@ export default function App() {
                           ) : isRunning ? (
                             <button
                               onClick={cancelBigProject}
-                              className="w-full sm:w-auto px-3 py-1.5 text-xs font-bold bg-red-600/80 hover:bg-red-500 text-white rounded-xl transition"
+                              className="w-full sm:w-auto px-3 py-1.5 text-xs font-bold bg-red-600/80 hover:bg-red-500 text-white rounded-xl transition active:scale-95"
                             >
                               Batalkan Proyek
                             </button>
@@ -619,7 +630,7 @@ export default function App() {
                             <button
                               onClick={() => startBigProject(proj.id)}
                               disabled={!isUnlocked || !hasStats || activeProjectId !== null}
-                              className={`w-full sm:w-auto px-4 py-2 text-xs font-extrabold rounded-xl transition ${
+                              className={`w-full sm:w-auto px-4 py-2 text-xs font-extrabold rounded-xl transition active:scale-95 ${
                                 isUnlocked && hasStats && activeProjectId === null
                                   ? 'bg-orange-500 hover:bg-orange-400 text-slate-950 shadow-md font-black'
                                   : 'bg-[#0A0F1D] text-slate-500 cursor-not-allowed border border-[#23335A]'
@@ -700,7 +711,7 @@ export default function App() {
                             <button
                               onClick={() => buyShopItem(item.id)}
                               disabled={!isUnlocked || !canAfford}
-                              className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all ${
+                              className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all active:scale-95 ${
                                 isUnlocked && canAfford
                                   ? 'bg-orange-500 hover:bg-orange-400 text-slate-950 font-black'
                                   : 'bg-[#1E2D50] text-slate-500 cursor-not-allowed border border-[#23335A]'
@@ -760,12 +771,11 @@ export default function App() {
         </div>
       </div>
 
-      {/* POPUP MODAL EVENT ACAK RESPONSIF DENGAN TOMBOL CLOSE X & OTOMATIS TUTUP */}
+      {/* POPUP MODAL EVENT ACAK RESPONSIF */}
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
             
-            {/* Tombol Tutup X */}
             <button
               onClick={closeCurrentEvent}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A]"
@@ -785,13 +795,38 @@ export default function App() {
                 <button
                   key={idx}
                   onClick={() => resolveEventOption(idx)}
-                  className="w-full text-left p-2.5 sm:p-3 rounded-xl bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] hover:border-orange-500/50 text-[11px] sm:text-xs font-bold text-slate-200 transition flex justify-between items-center group"
+                  className="w-full text-left p-2.5 sm:p-3 rounded-xl bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] hover:border-orange-500/50 text-[11px] sm:text-xs font-bold text-slate-200 transition flex justify-between items-center group active:scale-95"
                 >
                   <span className="pr-2">{option.text}</span>
                   <span className="text-orange-400 group-hover:translate-x-1 transition-transform">➔</span>
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP SELEBRASI LEVEL UP JABATAN KARIR */}
+      {levelUpCelebration && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141E36] border-2 border-amber-400 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow">
+            <div className="text-4xl animate-bounce">🎉</div>
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-widest text-amber-400">Promosi Jabatan PosIND</span>
+              <h3 className="text-2xl font-black text-white mt-1">Level {levelUpCelebration.newLevel}!</h3>
+              <p className="text-xs text-blue-300 font-bold mt-1">{getJobTitle(levelUpCelebration.newLevel)}</p>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Selamat! Kerja keras Anda diapresiasi. Pekerjaan dan tender proyek baru siap dibuka!
+            </p>
+
+            <button
+              onClick={dismissLevelUpCelebration}
+              className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:brightness-110 transition active:scale-95"
+            >
+              Terima Promosi! 🚀
+            </button>
           </div>
         </div>
       )}
