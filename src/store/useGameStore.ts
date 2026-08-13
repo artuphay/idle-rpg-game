@@ -357,6 +357,7 @@ export const useGameStore = create<GameState>()(
       toggleHideLocked: () => set((state) => ({ hideLocked: !state.hideLocked })),
       toggleHideLowLevel: () => set((state) => ({ hideLowLevel: !state.hideLowLevel })),
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+      setCategoryFilter: (cat) => set({ categoryFilter: cat }),
       dismissEventNotification: () => set({ eventNotification: null }),
       closeCurrentEvent: () => set({ currentEvent: null }),
 
@@ -408,7 +409,6 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      // TANGANI PEMILIHAN EVENT: MODAL PASTI DITUTUP SELALU!
       resolveEventOption: (optionIndex) => {
         const { currentEvent, soundEnabled } = get();
         if (!currentEvent) return;
@@ -437,13 +437,12 @@ export const useGameStore = create<GameState>()(
           newBuff = result.buff;
         }
 
-        // TUTUP MODAL SELALU DENGAN `currentEvent: null`
         set({
           gold: Math.max(0, newGold),
           exp: newExp,
           stats: newStats,
           activeBuff: newBuff,
-          currentEvent: null, // CLEAR MODAL ALWAYS
+          currentEvent: null,
           eventNotification: result.message,
           timeUntilNextEvent: 60,
         });
