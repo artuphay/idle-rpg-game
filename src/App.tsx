@@ -117,7 +117,7 @@ export default function App() {
         <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-6 text-center shadow-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-orange-500 to-blue-600"></div>
 
-          {/* Tombol Klakson & Mute Suara di Pojok Header */}
+          {/* Tombol Klakson & Mute Suara */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={triggerPosBell}
@@ -156,7 +156,7 @@ export default function App() {
             Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, dan Beli Aset Logistik!
           </p>
 
-          {/* Navigation Tabs - Grid 2x2 di Mobile agar Sangat Rapi */}
+          {/* Navigation Tabs - Grid 2x2 Rapi di HP */}
           <div className="grid grid-cols-2 sm:flex sm:justify-center gap-2 mt-4">
             <button
               onClick={() => setActiveTab('tasks')}
@@ -267,7 +267,7 @@ export default function App() {
               )}
             </div>
 
-            {/* Atribut Skill Pos dengan Floating Bubble Tooltip */}
+            {/* Atribut Skill Pos */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -278,7 +278,6 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                
                 {/* STA */}
                 <div
                   onClick={() => setActiveStatTooltip(activeStatTooltip === 'sta' ? null : 'sta')}
@@ -350,7 +349,6 @@ export default function App() {
                     </div>
                   )}
                 </div>
-
               </div>
             </div>
           </div>
@@ -428,8 +426,8 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* List Task */}
-                <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-2">
+                {/* LIST TASK DENGAN LAYOUT KARTU VERTIKAL RAPI UNTUK HP & DESKTOP */}
+                <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
                   {filteredTasks.length === 0 ? (
                     <div className="text-center py-8 text-slate-500 text-xs italic">
                       Tidak ada tugas yang sesuai dengan filter pilihan Anda.
@@ -450,8 +448,8 @@ export default function App() {
                               <h3 className="font-bold text-slate-500 text-xs tracking-wider">🔒 ??? (Pekerjaan Rahasia)</h3>
                               <p className="text-[10px] text-slate-600 mt-0.5">Capai level karir lebih tinggi untuk mengungkap tugas ini</p>
                             </div>
-                            <span className="text-[10px] font-bold text-slate-600 border border-slate-800 px-2.5 py-1 rounded-lg">
-                              Butuh Lv. {task.reqLevel}
+                            <span className="text-[10px] font-bold text-slate-600 border border-slate-800 px-2.5 py-1 rounded-lg shrink-0">
+                              Lv. {task.reqLevel}
                             </span>
                           </div>
                         );
@@ -460,7 +458,7 @@ export default function App() {
                       return (
                         <div
                           key={task.id}
-                          className={`p-3.5 rounded-xl border transition-all ${
+                          className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
                             isActive
                               ? 'bg-[#1E2D50] border-orange-500 shadow-md'
                               : isUnlocked
@@ -468,31 +466,41 @@ export default function App() {
                               : 'bg-[#0A0F1D]/30 border-[#1C2B4E] opacity-60'
                           }`}
                         >
+                          {/* BARIS ATAS: BADGE KATEGORI & STATUS KUNCI */}
                           <div className="flex justify-between items-center mb-1.5">
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <h3 className="font-bold text-white text-xs">
-                                  {isUnlocked ? task.name : `🔒 ${task.name}`}
-                                </h3>
-                                <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
-                                  task.category === 'Pekerjaan Pos' 
-                                    ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
-                                    : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                                }`}>
-                                  {task.category}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-slate-400 mt-1">
-                                Durasi: {task.duration}s | Reward: +{formatRupiah(task.rewardGold)}, +{task.rewardExp} EXP
-                                {task.rewardStat && `, +${task.rewardStat.amount} ${task.rewardStat.type.toUpperCase()}`}
-                              </p>
-                            </div>
+                            <span className={`text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
+                              task.category === 'Pekerjaan Pos' 
+                                ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' 
+                                : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                            }`}>
+                              {task.category}
+                            </span>
 
-                            {isUnlocked ? (
+                            {!isUnlocked && (
+                              <span className="text-[9px] sm:text-[10px] text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-md">
+                                🔒 Terkunci (Lv. {task.reqLevel})
+                              </span>
+                            )}
+                          </div>
+
+                          {/* BARIS TENGAH: JUDUL TUGAS FULL WIDTH */}
+                          <h3 className="font-extrabold text-white text-xs sm:text-sm leading-snug">
+                            {isUnlocked ? task.name : `🔒 ${task.name}`}
+                          </h3>
+
+                          {/* BARIS BAWAH: RINCIAN REWARD & TOMBOL AKSI */}
+                          <div className="flex justify-between items-end gap-2 mt-2 pt-2 border-t border-[#23335A]/50">
+                            <p className="text-[10px] sm:text-[11px] text-slate-400 leading-tight">
+                              ⏱️ {task.duration}s <br />
+                              💰 <span className="text-emerald-400 font-semibold">+{formatRupiah(task.rewardGold)}</span> | ✨ +{task.rewardExp} EXP
+                              {task.rewardStat && ` | +${task.rewardStat.amount} ${task.rewardStat.type.toUpperCase()}`}
+                            </p>
+
+                            {isUnlocked && (
                               <button
                                 onClick={() => setActiveTask(task.id)}
                                 disabled={isActive}
-                                className={`px-3.5 py-1.5 text-[11px] font-bold rounded-lg transition-all ${
+                                className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all shrink-0 ${
                                   isActive
                                     ? 'bg-orange-500 text-slate-950 font-black cursor-default'
                                     : 'bg-[#1E2D50] hover:bg-orange-600 hover:text-white text-slate-200 border border-[#304573]'
@@ -500,15 +508,12 @@ export default function App() {
                               >
                                 {isActive ? 'Bekerja...' : 'Kerjakan'}
                               </button>
-                            ) : (
-                              <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 border border-amber-500/20 px-2 py-1 rounded-lg">
-                                Terkunci (Lv. {task.reqLevel})
-                              </span>
                             )}
                           </div>
 
+                          {/* PROGRESS BAR */}
                           {isActive && (
-                            <div className="w-full bg-[#0A0F1D] rounded-full h-1.5 mt-2 overflow-hidden border border-[#23335A]">
+                            <div className="w-full bg-[#0A0F1D] rounded-full h-1.5 mt-2.5 overflow-hidden border border-[#23335A]">
                               <div
                                 className="bg-orange-400 h-full rounded-full transition-all duration-100"
                                 style={{ width: `${taskProgress}%` }}
@@ -535,7 +540,7 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="space-y-4 max-h-[460px] overflow-y-auto custom-scroll pr-2">
+                <div className="space-y-4 max-h-[460px] overflow-y-auto custom-scroll pr-1">
                   {bigProjects.map((proj) => {
                     const isUnlocked = level >= proj.reqLevel;
                     const hasStats = stats.sta >= proj.reqStats.sta && stats.spd >= proj.reqStats.spd && stats.tel >= proj.reqStats.tel;
@@ -572,7 +577,7 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <span className="text-xs font-black text-emerald-400 block">{formatRupiah(proj.rewardGold)}</span>
                             <span className="text-[10px] text-orange-400 font-bold block mt-0.5">+{proj.rewardExp} EXP</span>
                           </div>
@@ -637,7 +642,7 @@ export default function App() {
                   Toko Seragam, Kendaraan & Fasilitas PosIND
                 </h2>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[460px] overflow-y-auto custom-scroll pr-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
                   {shopItems.map((item) => {
                     const isUnlocked = level >= item.reqLevel;
                     const canAfford = gold >= item.cost;
@@ -748,12 +753,12 @@ export default function App() {
         </div>
       </div>
 
-      {/* POPUP MODAL EVENT ACAK KANTOR POS RESPONSIF MOBILE */}
+      {/* POPUP MODAL EVENT ACAK RESPONSIF DENGAN TOMBOL CLOSE X & OTOMATIS TUTUP */}
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
             
-            {/* Tombol Close Modal (X) */}
+            {/* Tombol Tutup X */}
             <button
               onClick={closeCurrentEvent}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A]"
