@@ -85,6 +85,12 @@ export interface FloatingText {
   color: string;
 }
 
+export interface OfflineReport {
+  durationSeconds: number;
+  goldEarned: number;
+  expEarned: number;
+}
+
 export const INITIAL_TASKS: Task[] = [
   { id: 'job_label', name: 'Cetak & Tempel Resi Paket', category: 'Pekerjaan Pos', duration: 1.5, reqLevel: 1, rewardGold: 10000, rewardExp: 8 },
   { id: 'job_sort', name: 'Sortir Surat & Paket Muka', category: 'Pekerjaan Pos', duration: 2.5, reqLevel: 1, rewardGold: 20000, rewardExp: 15 },
@@ -335,6 +341,10 @@ interface GameState {
   timeUntilNextEvent: number;
   eventNotification: string | null;
 
+  // Offline Income State
+  lastSaveTime: number;
+  offlineReport: OfflineReport | null;
+
   floatingTextList: FloatingText[];
   levelUpCelebration: { newLevel: number } | null;
 
@@ -352,6 +362,8 @@ interface GameState {
   closeCurrentEvent: () => void;
   dismissEventNotification: () => void;
   dismissLevelUpCelebration: () => void;
+  dismissOfflineReport: () => void;
+  checkOfflineIncome: () => void;
   gameTick: (deltaTime: number) => void;
 }
 
@@ -385,6 +397,9 @@ export const useGameStore = create<GameState>()(
       timeUntilNextEvent: 45,
       eventNotification: null,
 
+      lastSaveTime: Date.now(),
+      offlineReport: null,
+
       floatingTextList: [],
       levelUpCelebration: null,
 
@@ -396,10 +411,57 @@ export const useGameStore = create<GameState>()(
       dismissEventNotification: () => set({ eventNotification: null }),
       closeCurrentEvent: () => set({ currentEvent: null }),
       dismissLevelUpCelebration: () => set({ levelUpCelebration: null }),
+      dismissOfflineReport: () => set({ offlineReport: null }),
 
       triggerPosBell: () => {
         if (get().soundEnabled) {
           playPosBellSound();
+        }
+      },
+
+      checkOfflineIncome: () => {
+        const state = get();
+        const now = Date.now();
+        if (!state.lastSaveTime) {
+          set({ lastSaveTime: now });
+          return;
+        }
+
+        const offlineSeconds = Math.floor((now - state.lastSaveTime) / 1000);
+        set({ lastSaveTime: now });
+
+        // Minimal offline 10 detik
+        if (offlineSeconds < 10) return;
+
+        // Maksimal offline 8 jam (8 * 3600 = 28,800 detik)
+        const effectiveOfflineSeconds = Math.min(offlineSeconds, 8 * 3600);
+
+        const currentTask = INITIAL_TASKS.find((t) => t.id === state.activeTaskId) || INITIAL_TASKS[0];
+
+        const shopBonus = state.shopItems.filter((i) => i.owned).reduce((sum, i) => sum + i.expMultiplierBonus, 0);
+        const achBonus = state.achievements.filter((a) => a.unlocked).reduce((sum, a) => sum + a.expBonusMultiplier, 0);
+        const totalExpBonus = 1.0 + shopBonus + achBonus;
+
+        const goldPerSec = currentTask.rewardGold / currentTask.duration;
+        const expPerSec = (currentTask.rewardExp / currentTask.duration) * totalExpBonus;
+
+        // Rate Offline 50% (0.5)
+        const earnedOfflineGold = Math.floor(effectiveOfflineSeconds * goldPerSec * 0.5);
+        const earnedOfflineExp = Math.floor(effectiveOfflineSeconds * expPerSec * 0.5);
+
+        if (earnedOfflineGold > 0 || earnedOfflineExp > 0) {
+          if (state.soundEnabled) playPosBellSound();
+
+          set({
+            gold: state.gold + earnedOfflineGold,
+            exp: state.exp + earnedOfflineExp,
+            totalEarnings: state.totalEarnings + earnedOfflineGold,
+            offlineReport: {
+              durationSeconds: effectiveOfflineSeconds,
+              goldEarned: earnedOfflineGold,
+              expEarned: earnedOfflineExp,
+            },
+          });
         }
       },
 
@@ -473,7 +535,6 @@ export const useGameStore = create<GameState>()(
           newBuff = result.buff;
         }
 
-        // Buka Lencana Kucing jika sukses membantu kucing
         let updatedAchievements = achievements;
         if (currentEvent.id === 'evt_cat' && result.success) {
           updatedAchievements = achievements.map((a) => (a.id === 'ach_cat_friend' ? { ...a, unlocked: true } : a));
@@ -495,9 +556,11 @@ export const useGameStore = create<GameState>()(
         const state = get();
         const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
 
+        // Update timestamp save time
+        const now = Date.now();
+
         let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
 
-        // CHECK UNLOCK ACHIEVEMENTS AUTOMATICALLY
         let updatedAchievements = achievements.map((ach) => {
           if (ach.unlocked) return ach;
 
@@ -603,6 +666,7 @@ export const useGameStore = create<GameState>()(
             currentEvent: nextCurrentEvent,
             activeBuff: nextBuff,
             floatingTextList: newFloatingList,
+            lastSaveTime: now,
           });
           return;
         }
@@ -610,7 +674,6 @@ export const useGameStore = create<GameState>()(
         const currentTask = INITIAL_TASKS.find((t) => t.id === activeTaskId);
         if (!currentTask) return;
 
-        // Total Bonus EXP dari Toko Aset + Lencana Karir Terbuka
         const shopBonus = shopItems.filter((i) => i.owned).reduce((sum, i) => sum + i.expMultiplierBonus, 0);
         const achBonus = updatedAchievements.filter((a) => a.unlocked).reduce((sum, a) => sum + a.expBonusMultiplier, 0);
         const totalExpBonus = 1.0 + shopBonus + achBonus;
@@ -672,6 +735,7 @@ export const useGameStore = create<GameState>()(
             activeBuff: nextBuff,
             floatingTextList: newFloatingList,
             levelUpCelebration: showLevelUp,
+            lastSaveTime: now,
           });
         } else {
           set({
@@ -685,6 +749,7 @@ export const useGameStore = create<GameState>()(
             currentEvent: nextCurrentEvent,
             activeBuff: nextBuff,
             floatingTextList: newFloatingList,
+            lastSaveTime: now,
           });
         }
       },

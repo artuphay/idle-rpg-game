@@ -28,6 +28,7 @@ export default function App() {
     eventNotification,
     floatingTextList,
     levelUpCelebration,
+    offlineReport,
     setActiveTab,
     setActiveTask,
     startBigProject,
@@ -42,6 +43,8 @@ export default function App() {
     closeCurrentEvent,
     dismissEventNotification,
     dismissLevelUpCelebration,
+    dismissOfflineReport,
+    checkOfflineIncome,
     gameTick,
   } = useGameStore();
 
@@ -49,12 +52,13 @@ export default function App() {
 
   useEffect(() => {
     initAudioUnlock();
+    checkOfflineIncome(); // Hitung gaji offline saat game dibuka
     const interval = setInterval(() => {
       gameTick(0.1);
     }, 100);
 
     return () => clearInterval(interval);
-  }, [gameTick]);
+  }, [gameTick, checkOfflineIncome]);
 
   const formatRupiah = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -62,6 +66,18 @@ export default function App() {
       currency: 'IDR',
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const formatDurationText = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    let result = '';
+    if (hrs > 0) result += `${hrs} Jam `;
+    if (mins > 0) result += `${mins} Menit `;
+    if (hrs === 0 && mins === 0) result += `${secs} Detik`;
+    return result;
   };
 
   const getJobTitle = (lvl: number) => {
@@ -110,7 +126,7 @@ export default function App() {
     <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
-        {/* NOTIFIKASI EVENT / LENCANA */}
+        {/* NOTIFIKASI EVENT */}
         {eventNotification && (
           <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3 sm:p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
             <span className="pr-2">📢 {eventNotification}</span>
@@ -741,7 +757,6 @@ export default function App() {
                   Pencapaian & Lencana Karir
                 </h2>
 
-                {/* Ringkasan Statistik */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A]">
                     <p className="text-[10px] text-slate-400 font-semibold">Total Tugas Diselesaikan</p>
@@ -798,7 +813,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Aset Terbeli */}
                 <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] mt-3">
                   <h3 className="text-xs font-bold text-white mb-2">Aset Terbeli:</h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -815,7 +829,6 @@ export default function App() {
                     )}
                   </div>
                 </div>
-
               </div>
             )}
 
@@ -879,6 +892,35 @@ export default function App() {
               className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:brightness-110 transition active:scale-95"
             >
               Terima Promosi! 🚀
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* POPUP LAPORAN GAJI OFFLINE */}
+      {offlineReport && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141E36] border-2 border-emerald-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow">
+            <div className="text-4xl animate-bounce">💰</div>
+            <div>
+              <span className="text-[10px] uppercase font-black tracking-widest text-emerald-400">Laporan Gaji Offline PosIND</span>
+              <h3 className="text-xl font-black text-white mt-1">Selamat Datang Kembali!</h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Anda offline selama <span className="text-orange-400 font-bold">{formatDurationText(offlineReport.durationSeconds)}</span> (Rate 50% maks. 8 Jam).
+              </p>
+            </div>
+
+            <div className="bg-[#0A0F1D] p-3 rounded-xl border border-emerald-500/30 space-y-1">
+              <p className="text-xs text-slate-400 font-semibold">Gaji Terkumpul:</p>
+              <p className="text-2xl font-black text-emerald-400">{formatRupiah(offlineReport.goldEarned)}</p>
+              <p className="text-xs text-orange-400 font-bold">+{offlineReport.expEarned} EXP</p>
+            </div>
+
+            <button
+              onClick={dismissOfflineReport}
+              className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg transition active:scale-95"
+            >
+              Ambil Gaji Offline! 💰
             </button>
           </div>
         </div>
