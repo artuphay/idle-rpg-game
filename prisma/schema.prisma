@@ -1,0 +1,22 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Character {
+  id           String   @id @default("hero_main")
+  level        Int      @default(1)
+  exp          Int      @default(0)
+  maxExp       Int      @default(100)
+  gold         BigInt   @default(0)
+  str          Int      @default(10)
+  agi          Int      @default(10)
+  int          Int      @default(10)
+  activeTaskId String?  @default("job_beg")
+  lastSaveTime DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

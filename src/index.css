@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Scrollbar khusus di dalam Box Pekerjaan */
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: #0E1527;
+  border-radius: 9999px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #23335A;
+  border-radius: 9999px;
+  border: 1px solid #141E36;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #f97316;
+}
+
+/* Firefox */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #23335A #0E1527;
+}
