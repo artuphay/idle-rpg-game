@@ -19,6 +19,7 @@ export default function App() {
     hideLocked,
     hideLowLevel,
     categoryFilter,
+    soundEnabled,
     currentEvent,
     activeBuff,
     timeUntilNextEvent,
@@ -30,6 +31,8 @@ export default function App() {
     buyShopItem,
     toggleHideLocked,
     toggleHideLowLevel,
+    toggleSound,
+    triggerPosBell,
     setCategoryFilter,
     resolveEventOption,
     dismissEventNotification,
@@ -110,6 +113,24 @@ export default function App() {
         {/* Header Logo POS iND Style */}
         <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-6 text-center shadow-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-orange-500 to-blue-600"></div>
+
+          {/* Tombol Klakson & Mute Suara di Pojok Header */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <button
+              onClick={triggerPosBell}
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-xs px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md"
+              title="Bunyikan Bel Sepeda Pos"
+            >
+              🔔 Klakson Pos
+            </button>
+            <button
+              onClick={toggleSound}
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] text-slate-300 text-xs px-2.5 py-1.5 rounded-xl font-bold transition"
+              title={soundEnabled ? 'Matikan Suara' : 'Nyalakan Suara'}
+            >
+              {soundEnabled ? '🔊' : '🔇'}
+            </button>
+          </div>
 
           <div className="inline-flex flex-col items-center justify-center">
             <div className="flex items-baseline font-black text-3xl md:text-4xl tracking-tighter select-none">

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { playPosBellSound } from '../utils/audio';
 
 export interface Task {
   id: string;
@@ -300,6 +301,7 @@ interface GameState {
   hideLocked: boolean;
   hideLowLevel: boolean;
   categoryFilter: 'all' | 'Pekerjaan Pos' | 'Pelatihan Kerja';
+  soundEnabled: boolean;
 
   currentEvent: RandomEvent | null;
   activeBuff: ActiveBuff | null;
@@ -313,6 +315,8 @@ interface GameState {
   buyShopItem: (itemId: string) => void;
   toggleHideLocked: () => void;
   toggleHideLowLevel: () => void;
+  toggleSound: () => void;
+  triggerPosBell: () => void;
   setCategoryFilter: (cat: 'all' | 'Pekerjaan Pos' | 'Pelatihan Kerja') => void;
   resolveEventOption: (optionIndex: number) => void;
   dismissEventNotification: () => void;
@@ -341,6 +345,7 @@ export const useGameStore = create<GameState>()(
       hideLocked: false,
       hideLowLevel: false,
       categoryFilter: 'all',
+      soundEnabled: true,
 
       currentEvent: null,
       activeBuff: null,
@@ -350,15 +355,21 @@ export const useGameStore = create<GameState>()(
       setActiveTab: (tab) => set({ activeTab: tab }),
       toggleHideLocked: () => set((state) => ({ hideLocked: !state.hideLocked })),
       toggleHideLowLevel: () => set((state) => ({ hideLowLevel: !state.hideLowLevel })),
-      setCategoryFilter: (cat) => set({ categoryFilter: cat }),
+      toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
       dismissEventNotification: () => set({ eventNotification: null }),
+
+      triggerPosBell: () => {
+        if (get().soundEnabled) {
+          playPosBellSound();
+        }
+      },
 
       setActiveTask: (taskId) => {
         set({ activeTaskId: taskId, taskProgress: 0 });
       },
 
       startBigProject: (projectId) => {
-        const { bigProjects, stats, level } = get();
+        const { bigProjects, stats, level, soundEnabled } = get();
         const proj = bigProjects.find((p) => p.id === projectId);
         if (!proj || proj.completed || level < proj.reqLevel) return;
 
@@ -366,6 +377,8 @@ export const useGameStore = create<GameState>()(
           set({ eventNotification: 'Atribut pegawai Anda belum memenuhi syarat tender proyek ini!' });
           return;
         }
+
+        if (soundEnabled) playPosBellSound();
 
         set({
           activeProjectId: projectId,
@@ -381,9 +394,11 @@ export const useGameStore = create<GameState>()(
       },
 
       buyShopItem: (itemId) => {
-        const { gold, shopItems } = get();
+        const { gold, shopItems, soundEnabled } = get();
         const item = shopItems.find((i) => i.id === itemId);
         if (!item || item.owned || gold < item.cost) return;
+
+        if (soundEnabled) playPosBellSound();
 
         set({
           gold: gold - item.cost,
@@ -392,7 +407,7 @@ export const useGameStore = create<GameState>()(
       },
 
       resolveEventOption: (optionIndex) => {
-        const { currentEvent } = get();
+        const { currentEvent, soundEnabled } = get();
         if (!currentEvent) return;
 
         const option = currentEvent.options[optionIndex];
@@ -401,6 +416,7 @@ export const useGameStore = create<GameState>()(
         const result = option.action(get());
 
         if (result.success) {
+          if (soundEnabled) playPosBellSound();
           const state = get();
           let newGold = state.gold - (result.costGold || 0) + (result.rewardGold || 0);
           let newExp = state.exp + (result.rewardExp || 0);
@@ -434,7 +450,7 @@ export const useGameStore = create<GameState>()(
 
       gameTick: (deltaTime) => {
         const state = get();
-        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent } = state;
+        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, soundEnabled } = state;
 
         let nextEventTimer = timeUntilNextEvent - deltaTime;
         let nextCurrentEvent = currentEvent;
@@ -471,6 +487,7 @@ export const useGameStore = create<GameState>()(
             const newTimeRemaining = proj.timeRemaining - deltaTime;
 
             if (newWorkPoints >= proj.totalWorkPoints) {
+              if (soundEnabled) playPosBellSound();
               updatedBigProjects[projIdx] = {
                 ...proj,
                 currentWorkPoints: proj.totalWorkPoints,
@@ -531,6 +548,7 @@ export const useGameStore = create<GameState>()(
         const nextProgress = taskProgress + progressIncrement;
 
         if (nextProgress >= 100) {
+          if (soundEnabled) playPosBellSound();
           let newGold = gold + bonusGoldFromProj + Math.floor(currentTask.rewardGold * goldBuffMult);
           let newExp = exp + bonusExpFromProj + Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
           let newStats = { ...stats };
