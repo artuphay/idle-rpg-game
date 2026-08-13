@@ -14,6 +14,9 @@ export default function App() {
     shopItems,
     bigProjects,
     achievements,
+    cbsCount,
+    cbsPoints,
+    showCbsConfirmModal,
     activeProjectId,
     activeTab,
     totalTasksCompleted,
@@ -44,6 +47,9 @@ export default function App() {
     dismissEventNotification,
     dismissLevelUpCelebration,
     dismissOfflineReport,
+    openCbsConfirmModal,
+    closeCbsConfirmModal,
+    executeCbs,
     checkOfflineIncome,
     gameTick,
   } = useGameStore();
@@ -99,7 +105,9 @@ export default function App() {
     .filter((a) => a.unlocked)
     .reduce((sum, a) => sum + a.expBonusMultiplier, 0);
 
-  const totalExpMultiplier = activeShopMultiplier + activeAchMultiplier;
+  const cbsExpBonusMultiplier = cbsPoints * 0.20;
+  const cbsGoldBonusMultiplier = cbsPoints * 0.25;
+  const totalExpMultiplier = activeShopMultiplier + activeAchMultiplier + cbsExpBonusMultiplier;
 
   const filteredTasks = INITIAL_TASKS.filter((task) => {
     const isUnlocked = level >= task.reqLevel;
@@ -121,12 +129,13 @@ export default function App() {
   });
 
   const currentWorkRate = (stats.sta * 1.5) + (stats.spd * 2.0) + (stats.tel * 2.5);
+  const potentialCbsPoints = level >= 15 ? (level - 14) * 2 : 0;
 
   return (
     <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
-        {/* NOTIFIKASI EVENT / LENCANA */}
+        {/* NOTIFIKASI EVENT / LENCANA / CBS */}
         {eventNotification && (
           <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3 sm:p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
             <span className="pr-2">📢 {eventNotification}</span>
@@ -179,7 +188,7 @@ export default function App() {
             Artuphay Gabut di Pos Indonesia
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, Beli Aset, & Dapatkan Lencana!
+            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, Beli Aset, & Ambil Cuti Besar (CBS)!
           </p>
 
           {/* Navigation Tabs */}
@@ -231,9 +240,16 @@ export default function App() {
           
           {/* Panel Profil Pegawai Sidebar */}
           <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl h-fit space-y-4 relative">
-            <div className="border-b border-[#23335A] pb-3">
-              <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Jabatan Karir</h2>
-              <p className="text-xs text-blue-300 font-extrabold mt-0.5">{getJobTitle(level)}</p>
+            <div className="border-b border-[#23335A] pb-3 flex justify-between items-start">
+              <div>
+                <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Jabatan Karir</h2>
+                <p className="text-xs text-blue-300 font-extrabold mt-0.5">{getJobTitle(level)}</p>
+              </div>
+              {cbsCount > 0 && (
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-black">
+                  🏖️ CBS x{cbsCount}
+                </span>
+              )}
             </div>
             
             <div>
@@ -264,6 +280,12 @@ export default function App() {
             <div className="bg-[#0A0F1D] p-3 rounded-xl border border-orange-500/20 relative">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gaji / Uang Terkumpul</p>
               <p className="text-xl font-black text-emerald-400 mt-0.5">{formatRupiah(gold)}</p>
+
+              {cbsGoldBonusMultiplier > 0 && (
+                <p className="text-[9px] text-amber-400 font-bold mt-0.5">
+                  🔥 Bonus CBS Gaji: +{(cbsGoldBonusMultiplier * 100).toFixed(0)}%
+                </p>
+              )}
 
               <div className="absolute top-2 right-3 pointer-events-none flex flex-col items-end">
                 {floatingTextList.map((item) => (
@@ -750,14 +772,74 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 4: STATISTIK & LENCANA KARIR */}
+            {/* TAB 4: STATISTIK, LENCANA & CUTI BESAR (CBS) */}
             {activeTab === 'stats' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
-                  Pencapaian & Lencana Karir
+                  Pencapaian & Cuti Besar (CBS)
                 </h2>
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* KARTU PRESTIGE CUTI BESAR (CBS) */}
+                <div className="bg-gradient-to-br from-amber-600/30 via-[#1E2D50] to-[#0A0F1D] border-2 border-amber-500/60 p-4 rounded-2xl shadow-xl space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">🏖️</span>
+                        <h3 className="font-black text-amber-400 text-sm sm:text-base">Program Cuti Besar (CBS)</h3>
+                      </div>
+                      <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                        Nikmati hak Cuti Besar setelah berbakti lama di PosIND. Reset ke Lv. 1 dengan pelipatgandaan gaji & EXP permanen!
+                      </p>
+                    </div>
+
+                    <div className="text-right shrink-0 bg-[#0A0F1D] px-2.5 py-1 rounded-xl border border-amber-500/40">
+                      <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold block">Total Poin</span>
+                      <span className="text-xs sm:text-sm font-black text-amber-400">{cbsPoints} Poin</span>
+                    </div>
+                  </div>
+
+                  {/* Multiplier Efek CBS Aktif */}
+                  <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                    <div className="bg-[#0A0F1D]/80 p-2 rounded-xl border border-[#23335A]">
+                      <span className="text-[10px] text-slate-400 block font-semibold">Bonus Multiplier Gaji</span>
+                      <span className="text-xs sm:text-sm font-black text-emerald-400">
+                        {cbsPoints > 0 ? `+${(cbsGoldBonusMultiplier * 100).toFixed(0)}%` : '0%'}
+                      </span>
+                    </div>
+                    <div className="bg-[#0A0F1D]/80 p-2 rounded-xl border border-[#23335A]">
+                      <span className="text-[10px] text-slate-400 block font-semibold">Bonus Multiplier EXP</span>
+                      <span className="text-xs sm:text-sm font-black text-orange-400">
+                        {cbsPoints > 0 ? `+${(cbsExpBonusMultiplier * 100).toFixed(0)}%` : '0%'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tombol Ambil CBS */}
+                  <div className="flex justify-between items-center pt-2 border-t border-[#23335A]">
+                    <span className="text-[10px] text-slate-300 font-semibold">
+                      {level >= 15 ? (
+                        <span className="text-emerald-400 font-bold">✨ Mendapat +{potentialCbsPoints} Poin CBS jika cuti sekarang</span>
+                      ) : (
+                        <span className="text-slate-400 italic">🔒 Butuh Lv. 15 (Saat ini Lv. {level})</span>
+                      )}
+                    </span>
+
+                    <button
+                      onClick={openCbsConfirmModal}
+                      disabled={level < 15}
+                      className={`px-4 py-2 text-xs font-black rounded-xl transition active:scale-95 ${
+                        level >= 15
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-lg hover:brightness-110'
+                          : 'bg-[#0A0F1D] text-slate-500 border border-[#23335A] cursor-not-allowed'
+                      }`}
+                    >
+                      🏖️ Ambil Cuti Besar (CBS)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Ringkasan Statistik */}
+                <div className="grid grid-cols-2 gap-3 mt-4">
                   <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A]">
                     <p className="text-[10px] text-slate-400 font-semibold">Total Tugas Diselesaikan</p>
                     <p className="text-2xl font-black text-orange-400 mt-0.5">{totalTasksCompleted} Kali</p>
@@ -813,6 +895,7 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Aset Terbeli */}
                 <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] mt-3">
                   <h3 className="text-xs font-bold text-white mb-2">Aset Terbeli:</h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -838,12 +921,10 @@ export default function App() {
         </div>
       </div>
 
-      {/* 1. POPUP MODAL EVENT ACAK DENGAN TOMBOL X */}
+      {/* 1. POPUP MODAL EVENT ACAK */}
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
-            
-            {/* Tombol Tutup X */}
             <button
               onClick={closeCurrentEvent}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
@@ -875,12 +956,10 @@ export default function App() {
         </div>
       )}
 
-      {/* 2. POPUP SELEBRASI LEVEL UP JABATAN DENGAN TOMBOL X */}
+      {/* 2. POPUP SELEBRASI LEVEL UP JABATAN */}
       {levelUpCelebration && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#141E36] border-2 border-amber-400 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow relative">
-            
-            {/* Tombol Tutup X */}
             <button
               onClick={dismissLevelUpCelebration}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
@@ -910,12 +989,10 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. POPUP LAPORAN GAJI OFFLINE DENGAN TOMBOL X */}
+      {/* 3. POPUP LAPORAN GAJI OFFLINE */}
       {offlineReport && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#141E36] border-2 border-emerald-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 animate-glow relative">
-            
-            {/* Tombol Tutup X */}
             <button
               onClick={dismissOfflineReport}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
@@ -945,6 +1022,55 @@ export default function App() {
             >
               Ambil Gaji Offline! 💰
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 4. POPUP MODAL KONFIRMASI CUTI BESAR (CBS) */}
+      {showCbsConfirmModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141E36] border-2 border-amber-500 rounded-2xl max-w-xs sm:max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button
+              onClick={closeCbsConfirmModal}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              title="Tutup"
+            >
+              ✕
+            </button>
+
+            <div className="text-center">
+              <span className="text-4xl block animate-bounce">🏖️</span>
+              <h3 className="text-lg font-black text-amber-400 mt-2">Ambil Cuti Besar (CBS)?</h3>
+              <p className="text-xs text-slate-300 mt-1">
+                Anda akan mendapatkan <span className="text-amber-400 font-extrabold">+{potentialCbsPoints} Poin CBS</span> secara permanen!
+              </p>
+            </div>
+
+            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-amber-500/30 text-xs space-y-2 text-slate-300">
+              <p className="font-bold text-white border-b border-[#23335A] pb-1.5">Manfaat Cuti Besar (CBS):</p>
+              <ul className="space-y-1 text-[11px]">
+                <li className="text-emerald-400 font-bold">✓ Multiplier Gaji Permanen: +{(potentialCbsPoints * 25)}%</li>
+                <li className="text-orange-400 font-bold">✓ Multiplier EXP Permanen: +{(potentialCbsPoints * 20)}%</li>
+                <li className="text-blue-300 font-bold">✓ Base Stat Baru: +2 STA, +2 SPD, +2 TEL</li>
+                <li className="text-yellow-400 font-bold">✓ Uang Saku Cuti: Rp 50.000</li>
+                <li className="text-slate-400 italic">⚠️ Level karir & aset toko akan direset ke Lv. 1</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={closeCbsConfirmModal}
+                className="flex-1 py-2.5 bg-[#0A0F1D] hover:bg-[#1E2D50] text-slate-300 font-bold text-xs rounded-xl border border-[#23335A] transition active:scale-95"
+              >
+                Batal
+              </button>
+              <button
+                onClick={executeCbs}
+                className="flex-1 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-lg hover:brightness-110 transition active:scale-95"
+              >
+                Konfirmasi CBS! 🏖️
+              </button>
+            </div>
           </div>
         </div>
       )}

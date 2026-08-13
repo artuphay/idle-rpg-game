@@ -326,6 +326,11 @@ interface GameState {
   achievements: Achievement[];
   activeProjectId: string | null;
 
+  // Prestige CBS (Cuti Besar) State
+  cbsCount: number;
+  cbsPoints: number;
+  showCbsConfirmModal: boolean;
+
   totalTasksCompleted: number;
   totalEarnings: number;
 
@@ -363,6 +368,9 @@ interface GameState {
   dismissEventNotification: () => void;
   dismissLevelUpCelebration: () => void;
   dismissOfflineReport: () => void;
+  openCbsConfirmModal: () => void;
+  closeCbsConfirmModal: () => void;
+  executeCbs: () => void;
   checkOfflineIncome: () => void;
   gameTick: (deltaTime: number) => void;
 }
@@ -382,6 +390,10 @@ export const useGameStore = create<GameState>()(
       bigProjects: INITIAL_BIG_PROJECTS,
       achievements: INITIAL_ACHIEVEMENTS,
       activeProjectId: null,
+
+      cbsCount: 0,
+      cbsPoints: 0,
+      showCbsConfirmModal: false,
 
       totalTasksCompleted: 0,
       totalEarnings: 0,
@@ -412,6 +424,42 @@ export const useGameStore = create<GameState>()(
       closeCurrentEvent: () => set({ currentEvent: null }),
       dismissLevelUpCelebration: () => set({ levelUpCelebration: null }),
       dismissOfflineReport: () => set({ offlineReport: null }),
+      openCbsConfirmModal: () => set({ showCbsConfirmModal: true }),
+      closeCbsConfirmModal: () => set({ showCbsConfirmModal: false }),
+
+      executeCbs: () => {
+        const state = get();
+        if (state.level < 15) return;
+
+        // Poin CBS Didapat = (Level - 14) * 2
+        const pointsGained = (state.level - 14) * 2;
+        const newCbsCount = state.cbsCount + 1;
+        const newCbsPoints = state.cbsPoints + pointsGained;
+
+        if (state.soundEnabled) playPosBellSound();
+
+        // Reset Karir dengan Bonus Multiplier & Base Stats Lebih Kuat
+        set({
+          level: 1,
+          exp: 0,
+          maxExp: 100,
+          gold: 50000, // Uang Saku Cuti Besar
+          stats: {
+            sta: 10 + newCbsCount * 2,
+            spd: 10 + newCbsCount * 2,
+            tel: 10 + newCbsCount * 2,
+          },
+          activeTaskId: 'job_label',
+          taskProgress: 0,
+          shopItems: INITIAL_SHOP,
+          bigProjects: INITIAL_BIG_PROJECTS,
+          activeProjectId: null,
+          cbsCount: newCbsCount,
+          cbsPoints: newCbsPoints,
+          showCbsConfirmModal: false,
+          eventNotification: `🏖️ Selamat Menikmati Cuti Besar (CBS ke-${newCbsCount})! Anda memperoleh +${pointsGained} Poin CBS (+${pointsGained * 25}% Multiplier Gaji & +${pointsGained * 20}% Multiplier EXP)!`,
+        });
+      },
 
       triggerPosBell: () => {
         if (get().soundEnabled) {
@@ -430,22 +478,20 @@ export const useGameStore = create<GameState>()(
         const offlineSeconds = Math.floor((now - state.lastSaveTime) / 1000);
         set({ lastSaveTime: now });
 
-        // Minimal offline 10 detik
         if (offlineSeconds < 10) return;
 
-        // Maksimal offline 8 jam (8 * 3600 = 28,800 detik)
         const effectiveOfflineSeconds = Math.min(offlineSeconds, 8 * 3600);
-
         const currentTask = INITIAL_TASKS.find((t) => t.id === state.activeTaskId) || INITIAL_TASKS[0];
 
         const shopBonus = state.shopItems.filter((i) => i.owned).reduce((sum, i) => sum + i.expMultiplierBonus, 0);
         const achBonus = state.achievements.filter((a) => a.unlocked).reduce((sum, a) => sum + a.expBonusMultiplier, 0);
-        const totalExpBonus = 1.0 + shopBonus + achBonus;
+        const cbsExpBonus = state.cbsPoints * 0.20;
+        const totalExpBonus = 1.0 + shopBonus + achBonus + cbsExpBonus;
 
-        const goldPerSec = currentTask.rewardGold / currentTask.duration;
+        const cbsGoldMultiplier = 1.0 + (state.cbsPoints * 0.25);
+        const goldPerSec = (currentTask.rewardGold / currentTask.duration) * cbsGoldMultiplier;
         const expPerSec = (currentTask.rewardExp / currentTask.duration) * totalExpBonus;
 
-        // Rate Offline 50% (0.5)
         const earnedOfflineGold = Math.floor(effectiveOfflineSeconds * goldPerSec * 0.5);
         const earnedOfflineExp = Math.floor(effectiveOfflineSeconds * expPerSec * 0.5);
 
@@ -554,11 +600,9 @@ export const useGameStore = create<GameState>()(
 
       gameTick: (deltaTime) => {
         const state = get();
-        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
+        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, cbsPoints, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
 
-        // Update timestamp save time
         const now = Date.now();
-
         let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
 
         let updatedAchievements = achievements.map((ach) => {
@@ -599,6 +643,10 @@ export const useGameStore = create<GameState>()(
           }
         }
 
+        // Multipliers dari Cuti Besar (CBS)
+        const cbsGoldMultiplier = 1.0 + (cbsPoints * 0.25);
+        const cbsExpMultiplier = 1.0 + (cbsPoints * 0.20);
+
         let updatedBigProjects = [...bigProjects];
         let nextActiveProjectId = activeProjectId;
         let bonusGoldFromProj = 0;
@@ -623,17 +671,17 @@ export const useGameStore = create<GameState>()(
                 completed: true,
               };
               nextActiveProjectId = null;
-              bonusGoldFromProj = proj.rewardGold;
-              bonusExpFromProj = proj.rewardExp;
+              bonusGoldFromProj = Math.floor(proj.rewardGold * cbsGoldMultiplier);
+              bonusExpFromProj = Math.floor(proj.rewardExp * cbsExpMultiplier);
 
               newFloatingList.push({
                 id: Date.now(),
-                text: `+${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(proj.rewardGold)}`,
+                text: `+${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(bonusGoldFromProj)}`,
                 color: 'text-emerald-400',
               });
 
               set({
-                eventNotification: `🎉 SELAMAT! Proyek Besar "${proj.name}" Berhasil Diselesaikan! Hadiah: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(proj.rewardGold)}!`,
+                eventNotification: `🎉 SELAMAT! Proyek Besar "${proj.name}" Berhasil Diselesaikan! Hadiah: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(bonusGoldFromProj)}!`,
               });
             } else if (newTimeRemaining <= 0) {
               updatedBigProjects[projIdx] = {
@@ -676,7 +724,7 @@ export const useGameStore = create<GameState>()(
 
         const shopBonus = shopItems.filter((i) => i.owned).reduce((sum, i) => sum + i.expMultiplierBonus, 0);
         const achBonus = updatedAchievements.filter((a) => a.unlocked).reduce((sum, a) => sum + a.expBonusMultiplier, 0);
-        const totalExpBonus = 1.0 + shopBonus + achBonus;
+        const totalExpBonus = (1.0 + shopBonus + achBonus) * cbsExpMultiplier;
 
         const goldBuffMult = nextBuff ? nextBuff.goldMultiplier : 1.0;
         const expBuffMult = nextBuff ? nextBuff.expMultiplier : 1.0;
@@ -685,7 +733,7 @@ export const useGameStore = create<GameState>()(
         const nextProgress = taskProgress + progressIncrement;
 
         if (nextProgress >= 100) {
-          const earnedGold = Math.floor(currentTask.rewardGold * goldBuffMult);
+          const earnedGold = Math.floor(currentTask.rewardGold * goldBuffMult * cbsGoldMultiplier);
           const earnedExp = Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
 
           let newGold = gold + bonusGoldFromProj + earnedGold;
