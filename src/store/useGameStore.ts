@@ -356,6 +356,7 @@ export const useGameStore = create<GameState>()(
       toggleHideLocked: () => set((state) => ({ hideLocked: !state.hideLocked })),
       toggleHideLowLevel: () => set((state) => ({ hideLowLevel: !state.hideLowLevel })),
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+      setCategoryFilter: (cat) => set({ categoryFilter: cat }),
       dismissEventNotification: () => set({ eventNotification: null }),
 
       triggerPosBell: () => {
