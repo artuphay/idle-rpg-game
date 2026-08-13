@@ -13,6 +13,7 @@ export default function App() {
     taskProgress,
     shopItems,
     bigProjects,
+    achievements,
     activeProjectId,
     activeTab,
     totalTasksCompleted,
@@ -74,9 +75,15 @@ export default function App() {
     return 'Direktur Utama PosIND';
   };
 
-  const activeBonusMultiplier = shopItems
+  const activeShopMultiplier = shopItems
     .filter((i) => i.owned)
     .reduce((sum, i) => sum + i.expMultiplierBonus, 0);
+
+  const activeAchMultiplier = achievements
+    .filter((a) => a.unlocked)
+    .reduce((sum, a) => sum + a.expBonusMultiplier, 0);
+
+  const totalExpMultiplier = activeShopMultiplier + activeAchMultiplier;
 
   const filteredTasks = INITIAL_TASKS.filter((task) => {
     const isUnlocked = level >= task.reqLevel;
@@ -103,7 +110,7 @@ export default function App() {
     <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
-        {/* NOTIFIKASI EVENT */}
+        {/* NOTIFIKASI EVENT / LENCANA */}
         {eventNotification && (
           <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3 sm:p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
             <span className="pr-2">📢 {eventNotification}</span>
@@ -156,7 +163,7 @@ export default function App() {
             Artuphay Gabut di Pos Indonesia
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, dan Beli Aset Logistik!
+            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, Beli Aset, & Dapatkan Lencana!
           </p>
 
           {/* Navigation Tabs */}
@@ -199,7 +206,7 @@ export default function App() {
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              📊 Statistik Karir
+              🏆 Statistik & Lencana
             </button>
           </div>
         </div>
@@ -230,9 +237,9 @@ export default function App() {
                   style={{ width: `${Math.min((exp / maxExp) * 100, 100)}%` }}
                 ></div>
               </div>
-              {activeBonusMultiplier > 0 && (
+              {totalExpMultiplier > 0 && (
                 <p className="text-[10px] text-emerald-400 mt-1 font-semibold text-right">
-                  ⚡ +{(activeBonusMultiplier * 100).toFixed(0)}% Bonus EXP
+                  ⚡ +{(totalExpMultiplier * 100).toFixed(0)}% Bonus EXP Karir
                 </p>
               )}
             </div>
@@ -242,7 +249,6 @@ export default function App() {
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gaji / Uang Terkumpul</p>
               <p className="text-xl font-black text-emerald-400 mt-0.5">{formatRupiah(gold)}</p>
 
-              {/* RENDER FLOATING GAIN TEXT ANIMATION */}
               <div className="absolute top-2 right-3 pointer-events-none flex flex-col items-end">
                 {floatingTextList.map((item) => (
                   <span
@@ -728,13 +734,14 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 4: STATISTIK KARIR */}
+            {/* TAB 4: STATISTIK & LENCANA KARIR */}
             {activeTab === 'stats' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
-                  Pencapaian & Statistik Karir
+                  Pencapaian & Lencana Karir
                 </h2>
 
+                {/* Ringkasan Statistik */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A]">
                     <p className="text-[10px] text-slate-400 font-semibold">Total Tugas Diselesaikan</p>
@@ -747,6 +754,51 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* GRID LENCANA KARIR (ACHIEVEMENTS) */}
+                <div className="space-y-2 mt-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xs font-bold text-white">Daftar Lencana Karir:</h3>
+                    <span className="text-[10px] text-emerald-400 font-bold">
+                      {achievements.filter((a) => a.unlocked).length} / {achievements.length} Terbuka
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[340px] overflow-y-auto custom-scroll pr-1">
+                    {achievements.map((ach) => (
+                      <div
+                        key={ach.id}
+                        className={`p-3 rounded-xl border transition-all flex items-start gap-3 ${
+                          ach.unlocked
+                            ? 'bg-[#1E2D50] border-amber-400 shadow-md'
+                            : 'bg-[#0A0F1D]/40 border-[#23335A] opacity-50'
+                        }`}
+                      >
+                        <span className="text-2xl p-2 bg-[#0A0F1D] rounded-xl border border-[#23335A] shrink-0">
+                          {ach.unlocked ? ach.icon : '🔒'}
+                        </span>
+
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <h4 className={`font-bold text-xs ${ach.unlocked ? 'text-amber-300' : 'text-slate-400'}`}>
+                              {ach.title}
+                            </h4>
+                            {ach.unlocked && (
+                              <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full font-bold">
+                                Terbuka
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-0.5">{ach.description}</p>
+                          <p className="text-[10px] text-emerald-400 mt-1 font-bold">
+                            ⚡ +{(ach.expBonusMultiplier * 100).toFixed(0)}% Bonus EXP Karir
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Aset Terbeli */}
                 <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] mt-3">
                   <h3 className="text-xs font-bold text-white mb-2">Aset Terbeli:</h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -763,6 +815,7 @@ export default function App() {
                     )}
                   </div>
                 </div>
+
               </div>
             )}
 

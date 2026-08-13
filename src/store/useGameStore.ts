@@ -39,6 +39,15 @@ export interface BigProject {
   completed: boolean;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  expBonusMultiplier: number;
+}
+
 export interface ActiveBuff {
   name: string;
   goldMultiplier: number;
@@ -166,6 +175,17 @@ export const INITIAL_BIG_PROJECTS: BigProject[] = [
     rewardExp: 25000,
     completed: false,
   },
+];
+
+export const INITIAL_ACHIEVEMENTS: Achievement[] = [
+  { id: 'ach_task_10', title: '🚚 Kurir Pemula', description: 'Selesaikan 10 Tugas Kantor Pos', icon: '🚚', unlocked: false, expBonusMultiplier: 0.05 },
+  { id: 'ach_task_50', title: '📦 Kurir Handal', description: 'Selesaikan 50 Tugas Kantor Pos', icon: '📦', unlocked: false, expBonusMultiplier: 0.10 },
+  { id: 'ach_task_200', title: '🏭 Pahlawan Logistik', description: 'Selesaikan 200 Tugas Kantor Pos', icon: '🏭', unlocked: false, expBonusMultiplier: 0.20 },
+  { id: 'ach_gold_50m', title: '💰 Sultan PosIND', description: 'Kumpulkan total pendapatan hingga Rp 50 Juta', icon: '💰', unlocked: false, expBonusMultiplier: 0.15 },
+  { id: 'ach_proj_1', title: '💼 Juara Tender Proyek', description: 'Selesaikan setidaknya 1 Proyek Besar / Tender', icon: '💼', unlocked: false, expBonusMultiplier: 0.15 },
+  { id: 'ach_cat_friend', title: '🐱 Sahabat Kucing Pos', description: 'Bantu beri makan kucing kantor pos', icon: '🐱', unlocked: false, expBonusMultiplier: 0.10 },
+  { id: 'ach_manager', title: '👔 Manajer Operasional', description: 'Mencapai Jabatan Manajer Operasional (Lv. 13)', icon: '👔', unlocked: false, expBonusMultiplier: 0.15 },
+  { id: 'ach_ceo', title: '👑 Direktur Utama PosIND', description: 'Mencapai Jabatan Direktur Utama PosIND (Lv. 25)', icon: '👑', unlocked: false, expBonusMultiplier: 0.50 },
 ];
 
 export const INITIAL_SHOP: ShopItem[] = [
@@ -297,6 +317,7 @@ interface GameState {
 
   shopItems: ShopItem[];
   bigProjects: BigProject[];
+  achievements: Achievement[];
   activeProjectId: string | null;
 
   totalTasksCompleted: number;
@@ -314,7 +335,6 @@ interface GameState {
   timeUntilNextEvent: number;
   eventNotification: string | null;
 
-  // Visual Animation State
   floatingTextList: FloatingText[];
   levelUpCelebration: { newLevel: number } | null;
 
@@ -348,6 +368,7 @@ export const useGameStore = create<GameState>()(
       taskProgress: 0,
       shopItems: INITIAL_SHOP,
       bigProjects: INITIAL_BIG_PROJECTS,
+      achievements: INITIAL_ACHIEVEMENTS,
       activeProjectId: null,
 
       totalTasksCompleted: 0,
@@ -425,7 +446,7 @@ export const useGameStore = create<GameState>()(
       },
 
       resolveEventOption: (optionIndex) => {
-        const { currentEvent, soundEnabled } = get();
+        const { currentEvent, soundEnabled, achievements } = get();
         if (!currentEvent) return;
 
         const option = currentEvent.options[optionIndex];
@@ -452,11 +473,18 @@ export const useGameStore = create<GameState>()(
           newBuff = result.buff;
         }
 
+        // Buka Lencana Kucing jika sukses membantu kucing
+        let updatedAchievements = achievements;
+        if (currentEvent.id === 'evt_cat' && result.success) {
+          updatedAchievements = achievements.map((a) => (a.id === 'ach_cat_friend' ? { ...a, unlocked: true } : a));
+        }
+
         set({
           gold: Math.max(0, newGold),
           exp: newExp,
           stats: newStats,
           activeBuff: newBuff,
+          achievements: updatedAchievements,
           currentEvent: null,
           eventNotification: result.message,
           timeUntilNextEvent: 60,
@@ -465,10 +493,29 @@ export const useGameStore = create<GameState>()(
 
       gameTick: (deltaTime) => {
         const state = get();
-        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
+        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
 
-        // Bersihkan Teks Melayang yang Sudah Usang (Max 4 item)
         let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
+
+        // CHECK UNLOCK ACHIEVEMENTS AUTOMATICALLY
+        let updatedAchievements = achievements.map((ach) => {
+          if (ach.unlocked) return ach;
+
+          let shouldUnlock = false;
+          if (ach.id === 'ach_task_10' && totalTasksCompleted >= 10) shouldUnlock = true;
+          if (ach.id === 'ach_task_50' && totalTasksCompleted >= 50) shouldUnlock = true;
+          if (ach.id === 'ach_task_200' && totalTasksCompleted >= 200) shouldUnlock = true;
+          if (ach.id === 'ach_gold_50m' && totalEarnings >= 50000000) shouldUnlock = true;
+          if (ach.id === 'ach_proj_1' && bigProjects.some((p) => p.completed)) shouldUnlock = true;
+          if (ach.id === 'ach_manager' && level >= 13) shouldUnlock = true;
+          if (ach.id === 'ach_ceo' && level >= 25) shouldUnlock = true;
+
+          if (shouldUnlock) {
+            if (soundEnabled) playPosBellSound();
+            return { ...ach, unlocked: true };
+          }
+          return ach;
+        });
 
         let nextEventTimer = timeUntilNextEvent - deltaTime;
         let nextCurrentEvent = currentEvent;
@@ -550,6 +597,7 @@ export const useGameStore = create<GameState>()(
             gold: gold + bonusGoldFromProj,
             exp: exp + bonusExpFromProj,
             bigProjects: updatedBigProjects,
+            achievements: updatedAchievements,
             activeProjectId: nextActiveProjectId,
             timeUntilNextEvent: nextEventTimer,
             currentEvent: nextCurrentEvent,
@@ -562,9 +610,10 @@ export const useGameStore = create<GameState>()(
         const currentTask = INITIAL_TASKS.find((t) => t.id === activeTaskId);
         if (!currentTask) return;
 
-        const totalExpBonus = shopItems
-          .filter((i) => i.owned)
-          .reduce((sum, i) => sum + i.expMultiplierBonus, 1.0);
+        // Total Bonus EXP dari Toko Aset + Lencana Karir Terbuka
+        const shopBonus = shopItems.filter((i) => i.owned).reduce((sum, i) => sum + i.expMultiplierBonus, 0);
+        const achBonus = updatedAchievements.filter((a) => a.unlocked).reduce((sum, a) => sum + a.expBonusMultiplier, 0);
+        const totalExpBonus = 1.0 + shopBonus + achBonus;
 
         const goldBuffMult = nextBuff ? nextBuff.goldMultiplier : 1.0;
         const expBuffMult = nextBuff ? nextBuff.expMultiplier : 1.0;
@@ -614,6 +663,7 @@ export const useGameStore = create<GameState>()(
             stats: newStats,
             taskProgress: nextProgress - 100,
             bigProjects: updatedBigProjects,
+            achievements: updatedAchievements,
             activeProjectId: nextActiveProjectId,
             totalTasksCompleted: totalTasksCompleted + 1,
             totalEarnings: totalEarnings + currentTask.rewardGold + bonusGoldFromProj,
@@ -629,6 +679,7 @@ export const useGameStore = create<GameState>()(
             exp: exp + bonusExpFromProj,
             taskProgress: nextProgress,
             bigProjects: updatedBigProjects,
+            achievements: updatedAchievements,
             activeProjectId: nextActiveProjectId,
             timeUntilNextEvent: nextEventTimer,
             currentEvent: nextCurrentEvent,
