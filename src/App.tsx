@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGameStore, INITIAL_TASKS } from './store/useGameStore';
+import { initAudioUnlock } from './utils/audio';
 
 export default function App() {
   const {
@@ -35,6 +36,7 @@ export default function App() {
     triggerPosBell,
     setCategoryFilter,
     resolveEventOption,
+    closeCurrentEvent,
     dismissEventNotification,
     gameTick,
   } = useGameStore();
@@ -42,6 +44,7 @@ export default function App() {
   const [activeStatTooltip, setActiveStatTooltip] = useState<'sta' | 'spd' | 'tel' | null>(null);
 
   useEffect(() => {
+    initAudioUnlock();
     const interval = setInterval(() => {
       gameTick(0.1);
     }, 100);
@@ -94,16 +97,16 @@ export default function App() {
   const currentWorkRate = (stats.sta * 1.5) + (stats.spd * 2.0) + (stats.tel * 2.5);
 
   return (
-    <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-4 md:p-8 font-sans select-none antialiased relative">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative">
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
         
         {/* NOTIFIKASI EVENT */}
         {eventNotification && (
-          <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
-            <span>📢 {eventNotification}</span>
+          <div className="bg-[#1E2D50] border border-orange-500 text-orange-300 p-3 sm:p-3.5 rounded-xl shadow-xl flex justify-between items-center text-xs">
+            <span className="pr-2">📢 {eventNotification}</span>
             <button
               onClick={dismissEventNotification}
-              className="bg-orange-500 text-slate-950 px-3 py-1 rounded-lg font-black text-[10px] hover:bg-orange-400 transition"
+              className="bg-orange-500 text-slate-950 px-2.5 py-1 rounded-lg font-black text-[10px] hover:bg-orange-400 transition whitespace-nowrap"
             >
               Tutup
             </button>
@@ -111,21 +114,21 @@ export default function App() {
         )}
 
         {/* Header Logo POS iND Style */}
-        <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-6 text-center shadow-xl relative overflow-hidden">
+        <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-6 text-center shadow-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-600 via-orange-500 to-blue-600"></div>
 
           {/* Tombol Klakson & Mute Suara di Pojok Header */}
-          <div className="absolute top-4 right-4 flex items-center gap-2">
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={triggerPosBell}
-              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-xs px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md"
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-orange-500/50 text-orange-400 text-[10px] sm:text-xs px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl font-bold transition flex items-center gap-1 shadow-md"
               title="Bunyikan Bel Sepeda Pos"
             >
-              🔔 Klakson Pos
+              🔔 <span className="hidden sm:inline">Klakson Pos</span>
             </button>
             <button
               onClick={toggleSound}
-              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] text-slate-300 text-xs px-2.5 py-1.5 rounded-xl font-bold transition"
+              className="bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] text-slate-300 text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl font-bold transition"
               title={soundEnabled ? 'Matikan Suara' : 'Nyalakan Suara'}
             >
               {soundEnabled ? '🔊' : '🔇'}
@@ -133,7 +136,7 @@ export default function App() {
           </div>
 
           <div className="inline-flex flex-col items-center justify-center">
-            <div className="flex items-baseline font-black text-3xl md:text-4xl tracking-tighter select-none">
+            <div className="flex items-baseline font-black text-2xl sm:text-3xl md:text-4xl tracking-tighter select-none">
               <span className="text-white">POS</span>
               <span className="text-orange-500 relative ml-1">
                 <span className="inline-block w-2 h-2 bg-orange-500 rounded-tl-full rounded-tr-full absolute -top-1 left-0"></span>
@@ -141,23 +144,23 @@ export default function App() {
               </span>
               <span className="text-white">ND</span>
             </div>
-            <span className="text-[9px] md:text-[10px] text-slate-300 font-bold uppercase tracking-[0.25em] -mt-1">
+            <span className="text-[8px] sm:text-[9px] md:text-[10px] text-slate-300 font-bold uppercase tracking-[0.25em] -mt-1">
               Logistik Indonesia
             </span>
           </div>
 
-          <h1 className="text-lg md:text-xl font-extrabold text-orange-400 mt-2 tracking-tight">
+          <h1 className="text-base sm:text-lg md:text-xl font-extrabold text-orange-400 mt-2 tracking-tight">
             Artuphay Gabut di Pos Indonesia
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
             Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, dan Beli Aset Logistik!
           </p>
 
-          {/* Navigation Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 mt-4">
+          {/* Navigation Tabs - Grid 2x2 di Mobile agar Sangat Rapi */}
+          <div className="grid grid-cols-2 sm:flex sm:justify-center gap-2 mt-4">
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
                 activeTab === 'tasks'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -167,17 +170,17 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('projects')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
                 activeTab === 'projects'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              💼 Proyek Besar / Tender
+              💼 Proyek Besar
             </button>
             <button
               onClick={() => setActiveTab('shop')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
                 activeTab === 'shop'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -187,7 +190,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setActiveTab('stats')}
-              className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${
+              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all ${
                 activeTab === 'stats'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
@@ -198,10 +201,10 @@ export default function App() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           
           {/* Panel Profil Pegawai Sidebar */}
-          <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-5 shadow-xl h-fit space-y-4">
+          <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl h-fit space-y-4">
             <div className="border-b border-[#23335A] pb-3">
               <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Jabatan Karir</h2>
               <p className="text-xs text-blue-300 font-extrabold mt-0.5">{getJobTitle(level)}</p>
@@ -264,7 +267,7 @@ export default function App() {
               )}
             </div>
 
-            {/* Atribut Skill Pos */}
+            {/* Atribut Skill Pos dengan Floating Bubble Tooltip */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -290,10 +293,10 @@ export default function App() {
                   <span className="block text-xs font-black text-white mt-0.5">{stats.sta}</span>
 
                   {activeStatTooltip === 'sta' && (
-                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-[#1E2D50] border border-orange-500 rounded-xl p-2.5 text-left text-xs shadow-2xl z-30 pointer-events-none">
+                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-40 sm:w-48 bg-[#1E2D50] border border-orange-500 rounded-xl p-2.5 text-left text-xs shadow-2xl z-30 pointer-events-none">
                       <p className="font-extrabold text-red-400 text-[11px]">🔴 STA (Stamina)</p>
                       <p className="text-[10px] text-slate-300 leading-tight mt-1">
-                        Ketahanan fisik pegawai. Memberikan 1.5 Work Points/detik pada Proyek Besar & lolos inspeksi.
+                        Ketahanan fisik pegawai. Memberikan 1.5 Work Points/detik pada Proyek Besar.
                       </p>
                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-orange-500"></div>
                     </div>
@@ -314,10 +317,10 @@ export default function App() {
                   <span className="block text-xs font-black text-white mt-0.5">{stats.spd}</span>
 
                   {activeStatTooltip === 'spd' && (
-                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-[#1E2D50] border border-orange-500 rounded-xl p-2.5 text-left text-xs shadow-2xl z-30 pointer-events-none">
+                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-40 sm:w-48 bg-[#1E2D50] border border-orange-500 rounded-xl p-2.5 text-left text-xs shadow-2xl z-30 pointer-events-none">
                       <p className="font-extrabold text-orange-400 text-[11px]">🟠 SPD (Kecepatan)</p>
                       <p className="text-[10px] text-slate-300 leading-tight mt-1">
-                        Kelincahan sortir paket. Memberikan 2.0 Work Points/detik pada Proyek Besar & bonus inspeksi.
+                        Kelincahan sortir paket. Memberikan 2.0 Work Points/detik pada Proyek Besar.
                       </p>
                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-orange-500"></div>
                     </div>
@@ -338,10 +341,10 @@ export default function App() {
                   <span className="block text-xs font-black text-white mt-0.5">{stats.tel}</span>
 
                   {activeStatTooltip === 'tel' && (
-                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-[#1E2D50] border border-orange-500 rounded-xl p-2.5 text-left text-xs shadow-2xl z-30 pointer-events-none">
+                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-40 sm:w-48 bg-[#1E2D50] border border-orange-500 rounded-xl p-2.5 text-left text-xs shadow-2xl z-30 pointer-events-none">
                       <p className="font-extrabold text-blue-400 text-[11px]">🔵 TEL (Ketelitian)</p>
                       <p className="text-[10px] text-slate-300 leading-tight mt-1">
-                        Akurasi sistem & pabean. Memberikan 2.5 Work Points/detik pada Proyek Besar & rakit mesin kopi.
+                        Akurasi sistem & pabean. Memberikan 2.5 Work Points/detik pada Proyek Besar.
                       </p>
                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-orange-500"></div>
                     </div>
@@ -357,7 +360,7 @@ export default function App() {
             
             {/* TAB 1: TUGAS & PEKERJAAN */}
             {activeTab === 'tasks' && (
-              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 
                 {/* Control Filters */}
                 <div className="space-y-3 border-b border-[#23335A] pb-3">
@@ -522,7 +525,7 @@ export default function App() {
 
             {/* TAB 2: PROYEK BESAR / TENDER */}
             {activeTab === 'projects' && (
-              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <div className="border-b border-[#23335A] pb-3">
                   <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">
                     Tender Proyek Besar & Logistik Nasional
@@ -629,7 +632,7 @@ export default function App() {
 
             {/* TAB 3: TOKO ASET */}
             {activeTab === 'shop' && (
-              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
                   Toko Seragam, Kendaraan & Fasilitas PosIND
                 </h2>
@@ -704,7 +707,7 @@ export default function App() {
 
             {/* TAB 4: STATISTIK KARIR */}
             {activeTab === 'stats' && (
-              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-5 shadow-xl space-y-4">
+              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
                   Pencapaian & Statistik Karir
                 </h2>
@@ -745,25 +748,34 @@ export default function App() {
         </div>
       </div>
 
-      {/* POPUP MODAL EVENT ACAK KANTOR POS */}
+      {/* POPUP MODAL EVENT ACAK KANTOR POS RESPONSIF MOBILE */}
       {currentEvent && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-md w-full p-6 shadow-2xl relative space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">⚠️</span>
-              <h3 className="font-extrabold text-orange-400 text-lg">{currentEvent.title}</h3>
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
+            
+            {/* Tombol Close Modal (X) */}
+            <button
+              onClick={closeCurrentEvent}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A]"
+            >
+              ✕
+            </button>
+
+            <div className="flex items-center gap-2 pr-6">
+              <span className="text-xl sm:text-2xl">⚠️</span>
+              <h3 className="font-extrabold text-orange-400 text-sm sm:text-base leading-tight">{currentEvent.title}</h3>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">{currentEvent.description}</p>
+            <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed">{currentEvent.description}</p>
 
             <div className="space-y-2 pt-2 border-t border-[#23335A]">
               {currentEvent.options.map((option, idx) => (
                 <button
                   key={idx}
                   onClick={() => resolveEventOption(idx)}
-                  className="w-full text-left p-3 rounded-xl bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] hover:border-orange-500/50 text-xs font-bold text-slate-200 transition flex justify-between items-center group"
+                  className="w-full text-left p-2.5 sm:p-3 rounded-xl bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] hover:border-orange-500/50 text-[11px] sm:text-xs font-bold text-slate-200 transition flex justify-between items-center group"
                 >
-                  <span>{option.text}</span>
+                  <span className="pr-2">{option.text}</span>
                   <span className="text-orange-400 group-hover:translate-x-1 transition-transform">➔</span>
                 </button>
               ))}

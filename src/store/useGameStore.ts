@@ -211,7 +211,7 @@ export const RANDOM_EVENTS_POOL: RandomEvent[] = [
           if (state.stats.tel >= 12) {
             return { message: 'Berhasil memperbaiki mesin kopi! Rekan kerja kagum (+150 EXP).', success: true, rewardExp: 150 };
           }
-          return { message: 'Gagal merakit mesin kopi. Malah ketumpahan air panas.', success: false };
+          return { message: 'Gagal merakit mesin kopi (Butuh TEL >= 12). Malah ketumpahan air panas.', success: false };
         }
       },
       {
@@ -221,7 +221,7 @@ export const RANDOM_EVENTS_POOL: RandomEvent[] = [
           if (state.gold >= 20000) {
             return { message: 'Kopi nikmat didapat! (+50 EXP & +2 STA)', success: true, costGold: 20000, rewardExp: 50, rewardStat: { type: 'sta', amount: 2 } };
           }
-          return { message: 'Uang Anda tidak cukup.', success: false };
+          return { message: 'Uang Anda tidak cukup untuk patungan kopi.', success: false };
         }
       },
       {
@@ -242,7 +242,7 @@ export const RANDOM_EVENTS_POOL: RandomEvent[] = [
           if (state.stats.spd >= 12) {
             return { message: 'Direksi terkesan dengan kecepatan Anda! Bonus Rp 300.000 & +100 EXP!', success: true, rewardGold: 300000, rewardExp: 100 };
           }
-          return { message: 'Gerakan Anda masih canggung. Direksi hanya mengangguk.', success: false };
+          return { message: 'Gerakan Anda kurang cepat (Butuh SPD >= 12). Direksi hanya mengangguk.', success: false };
         }
       },
       {
@@ -268,7 +268,7 @@ export const RANDOM_EVENTS_POOL: RandomEvent[] = [
               buff: { name: 'Keberuntungan Kucing (+50% EXP)', goldMultiplier: 1.0, expMultiplier: 1.5, durationRemaining: 45 }
             };
           }
-          return { message: 'Uang Anda tidak cukup.', success: false };
+          return { message: 'Uang Anda tidak cukup untuk beli makanan kucing.', success: false };
         }
       },
       {
@@ -319,6 +319,7 @@ interface GameState {
   triggerPosBell: () => void;
   setCategoryFilter: (cat: 'all' | 'Pekerjaan Pos' | 'Pelatihan Kerja') => void;
   resolveEventOption: (optionIndex: number) => void;
+  closeCurrentEvent: () => void;
   dismissEventNotification: () => void;
   gameTick: (deltaTime: number) => void;
 }
@@ -356,8 +357,8 @@ export const useGameStore = create<GameState>()(
       toggleHideLocked: () => set((state) => ({ hideLocked: !state.hideLocked })),
       toggleHideLowLevel: () => set((state) => ({ hideLowLevel: !state.hideLowLevel })),
       toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
-      setCategoryFilter: (cat) => set({ categoryFilter: cat }),
       dismissEventNotification: () => set({ eventNotification: null }),
+      closeCurrentEvent: () => set({ currentEvent: null }),
 
       triggerPosBell: () => {
         if (get().soundEnabled) {
@@ -399,7 +400,6 @@ export const useGameStore = create<GameState>()(
         const item = shopItems.find((i) => i.id === itemId);
         if (!item || item.owned || gold < item.cost) return;
 
-        // Bersenandung hanya saat berhasil membeli aset di toko
         if (soundEnabled) playPosBellSound();
 
         set({
@@ -408,6 +408,7 @@ export const useGameStore = create<GameState>()(
         });
       },
 
+      // TANGANI PEMILIHAN EVENT: MODAL PASTI DITUTUP SELALU!
       resolveEventOption: (optionIndex) => {
         const { currentEvent, soundEnabled } = get();
         if (!currentEvent) return;
@@ -417,37 +418,35 @@ export const useGameStore = create<GameState>()(
 
         const result = option.action(get());
 
-        if (result.success) {
-          if (soundEnabled) playPosBellSound();
-          const state = get();
-          let newGold = state.gold - (result.costGold || 0) + (result.rewardGold || 0);
-          let newExp = state.exp + (result.rewardExp || 0);
-          let newStats = { ...state.stats };
-
-          if (result.rewardStat) {
-            const { type, amount } = result.rewardStat;
-            newStats[type] += amount;
-          }
-
-          let newBuff = state.activeBuff;
-          if (result.buff) {
-            newBuff = result.buff;
-          }
-
-          set({
-            gold: Math.max(0, newGold),
-            exp: newExp,
-            stats: newStats,
-            activeBuff: newBuff,
-            currentEvent: null,
-            eventNotification: result.message,
-            timeUntilNextEvent: 60,
-          });
-        } else {
-          set({
-            eventNotification: result.message,
-          });
+        if (result.success && soundEnabled) {
+          playPosBellSound();
         }
+
+        const state = get();
+        let newGold = state.gold - (result.costGold || 0) + (result.rewardGold || 0);
+        let newExp = state.exp + (result.rewardExp || 0);
+        let newStats = { ...state.stats };
+
+        if (result.rewardStat) {
+          const { type, amount } = result.rewardStat;
+          newStats[type] += amount;
+        }
+
+        let newBuff = state.activeBuff;
+        if (result.buff) {
+          newBuff = result.buff;
+        }
+
+        // TUTUP MODAL SELALU DENGAN `currentEvent: null`
+        set({
+          gold: Math.max(0, newGold),
+          exp: newExp,
+          stats: newStats,
+          activeBuff: newBuff,
+          currentEvent: null, // CLEAR MODAL ALWAYS
+          eventNotification: result.message,
+          timeUntilNextEvent: 60,
+        });
       },
 
       gameTick: (deltaTime) => {
@@ -489,7 +488,7 @@ export const useGameStore = create<GameState>()(
             const newTimeRemaining = proj.timeRemaining - deltaTime;
 
             if (newWorkPoints >= proj.totalWorkPoints) {
-              if (soundEnabled) playPosBellSound(); // Berbunyi saat Proyek Besar Selesai!
+              if (soundEnabled) playPosBellSound();
               updatedBigProjects[projIdx] = {
                 ...proj,
                 currentWorkPoints: proj.totalWorkPoints,
@@ -550,7 +549,6 @@ export const useGameStore = create<GameState>()(
         const nextProgress = taskProgress + progressIncrement;
 
         if (nextProgress >= 100) {
-          // TANPA EFEK SUARA PADA TUGAS RUTIN (Sangat Tenang)
           let newGold = gold + bonusGoldFromProj + Math.floor(currentTask.rewardGold * goldBuffMult);
           let newExp = exp + bonusExpFromProj + Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
           let newStats = { ...stats };
