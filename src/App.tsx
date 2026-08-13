@@ -156,7 +156,7 @@ export default function App() {
             Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, dan Beli Aset Logistik!
           </p>
 
-          {/* Navigation Tabs - Grid 2x2 Rapi di HP */}
+          {/* Navigation Tabs */}
           <div className="grid grid-cols-2 sm:flex sm:justify-center gap-2 mt-4">
             <button
               onClick={() => setActiveTab('tasks')}
@@ -426,7 +426,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* LIST TASK DENGAN LAYOUT KARTU VERTIKAL RAPI UNTUK HP & DESKTOP */}
+                {/* List Task */}
                 <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
                   {filteredTasks.length === 0 ? (
                     <div className="text-center py-8 text-slate-500 text-xs italic">
@@ -466,7 +466,6 @@ export default function App() {
                               : 'bg-[#0A0F1D]/30 border-[#1C2B4E] opacity-60'
                           }`}
                         >
-                          {/* BARIS ATAS: BADGE KATEGORI & STATUS KUNCI */}
                           <div className="flex justify-between items-center mb-1.5">
                             <span className={`text-[9px] sm:text-[10px] px-2.5 py-0.5 rounded-full font-bold ${
                               task.category === 'Pekerjaan Pos' 
@@ -483,12 +482,10 @@ export default function App() {
                             )}
                           </div>
 
-                          {/* BARIS TENGAH: JUDUL TUGAS FULL WIDTH */}
                           <h3 className="font-extrabold text-white text-xs sm:text-sm leading-snug">
                             {isUnlocked ? task.name : `🔒 ${task.name}`}
                           </h3>
 
-                          {/* BARIS BAWAH: RINCIAN REWARD & TOMBOL AKSI */}
                           <div className="flex justify-between items-end gap-2 mt-2 pt-2 border-t border-[#23335A]/50">
                             <p className="text-[10px] sm:text-[11px] text-slate-400 leading-tight">
                               ⏱️ {task.duration}s <br />
@@ -511,7 +508,6 @@ export default function App() {
                             )}
                           </div>
 
-                          {/* PROGRESS BAR */}
                           {isActive && (
                             <div className="w-full bg-[#0A0F1D] rounded-full h-1.5 mt-2.5 overflow-hidden border border-[#23335A]">
                               <div
@@ -540,7 +536,7 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="space-y-4 max-h-[460px] overflow-y-auto custom-scroll pr-1">
+                <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
                   {bigProjects.map((proj) => {
                     const isUnlocked = level >= proj.reqLevel;
                     const hasStats = stats.sta >= proj.reqStats.sta && stats.spd >= proj.reqStats.spd && stats.tel >= proj.reqStats.tel;
@@ -549,49 +545,55 @@ export default function App() {
                     return (
                       <div
                         key={proj.id}
-                        className={`p-4 rounded-xl border transition-all ${
+                        className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
                           isRunning
                             ? 'bg-[#1E2D50] border-orange-500 shadow-xl'
                             : proj.completed
                             ? 'bg-emerald-950/20 border-emerald-800/50'
                             : isUnlocked && hasStats
                             ? 'bg-[#0A0F1D]/70 border-[#23335A] hover:border-slate-500'
-                            : 'bg-[#0A0F1D]/30 border-[#1C2B4E] opacity-50'
+                            : 'bg-[#0A0F1D]/30 border-[#1C2B4E] opacity-60'
                         }`}
                       >
-                        <div className="flex justify-between items-start gap-2">
+                        {/* Header Proyek */}
+                        <div className="flex justify-between items-start gap-2 border-b border-[#23335A]/50 pb-2">
                           <div>
-                            <h3 className="font-extrabold text-white text-sm">{proj.name}</h3>
-                            <p className="text-[11px] text-slate-400 mt-0.5">{proj.description}</p>
-                            
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${stats.sta >= proj.reqStats.sta ? 'bg-red-950/80 text-red-300 border border-red-800' : 'bg-slate-900 text-slate-500'}`}>
-                                STA ≥ {proj.reqStats.sta}
-                              </span>
-                              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${stats.spd >= proj.reqStats.spd ? 'bg-amber-950/80 text-amber-300 border border-amber-800' : 'bg-slate-900 text-slate-500'}`}>
-                                SPD ≥ {proj.reqStats.spd}
-                              </span>
-                              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${stats.tel >= proj.reqStats.tel ? 'bg-blue-950/80 text-blue-300 border border-blue-800' : 'bg-slate-900 text-slate-500'}`}>
-                                TEL ≥ {proj.reqStats.tel}
-                              </span>
-                            </div>
+                            <h3 className="font-extrabold text-white text-xs sm:text-sm leading-snug">{proj.name}</h3>
+                            <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 leading-tight">{proj.description}</p>
                           </div>
-
                           <div className="text-right shrink-0">
-                            <span className="text-xs font-black text-emerald-400 block">{formatRupiah(proj.rewardGold)}</span>
+                            <span className="text-xs sm:text-sm font-black text-emerald-400 block">{formatRupiah(proj.rewardGold)}</span>
                             <span className="text-[10px] text-orange-400 font-bold block mt-0.5">+{proj.rewardExp} EXP</span>
                           </div>
                         </div>
 
+                        {/* Badges Syarat Stat */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.sta >= proj.reqStats.sta ? 'bg-red-950/80 text-red-300 border border-red-800' : 'bg-slate-900 text-slate-500'}`}>
+                              STA ≥ {proj.reqStats.sta}
+                            </span>
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.spd >= proj.reqStats.spd ? 'bg-amber-950/80 text-amber-300 border border-amber-800' : 'bg-slate-900 text-slate-500'}`}>
+                              SPD ≥ {proj.reqStats.spd}
+                            </span>
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.tel >= proj.reqStats.tel ? 'bg-blue-950/80 text-blue-300 border border-blue-800' : 'bg-slate-900 text-slate-500'}`}>
+                              TEL ≥ {proj.reqStats.tel}
+                            </span>
+                          </div>
+
+                          <span className="text-[10px] text-slate-400 font-semibold">⏱️ {proj.timeLimit}s</span>
+                        </div>
+
+                        {/* Progress Bar Proyek Berjalan */}
                         {isRunning && (
-                          <div className="mt-3 space-y-1.5 bg-[#0A0F1D] p-3 rounded-lg border border-orange-500/50">
-                            <div className="flex justify-between text-xs font-bold">
+                          <div className="mt-3 space-y-1.5 bg-[#0A0F1D] p-2.5 rounded-lg border border-orange-500/50">
+                            <div className="flex justify-between text-[11px] font-bold">
                               <span className="text-orange-300">
                                 Work Points: {proj.currentWorkPoints.toFixed(0)} / {proj.totalWorkPoints}
                               </span>
-                              <span className="text-red-400">⏱️ Sisa Waktu: {proj.timeRemaining.toFixed(0)}s</span>
+                              <span className="text-red-400">⏱️ Sisa: {proj.timeRemaining.toFixed(0)}s</span>
                             </div>
-                            <div className="w-full bg-[#141E36] rounded-full h-3 overflow-hidden border border-orange-500/30">
+                            <div className="w-full bg-[#141E36] rounded-full h-2.5 overflow-hidden border border-orange-500/30">
                               <div
                                 className="bg-gradient-to-r from-orange-500 to-amber-400 h-full rounded-full transition-all duration-100"
                                 style={{ width: `${Math.min(100, (proj.currentWorkPoints / proj.totalWorkPoints) * 100)}%` }}
@@ -600,9 +602,8 @@ export default function App() {
                           </div>
                         )}
 
-                        <div className="mt-3 flex justify-between items-center border-t border-[#23335A] pt-2.5">
-                          <span className="text-[10px] text-slate-400 font-semibold">Batas Waktu: {proj.timeLimit}s</span>
-
+                        {/* Tombol Eksekusi Informatif */}
+                        <div className="mt-3 pt-2 border-t border-[#23335A]/50 flex justify-end items-center">
                           {proj.completed ? (
                             <span className="text-xs font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-lg">
                               ✓ Proyek Selesai!
@@ -610,21 +611,27 @@ export default function App() {
                           ) : isRunning ? (
                             <button
                               onClick={cancelBigProject}
-                              className="px-3 py-1 text-xs font-bold bg-red-600/80 hover:bg-red-500 text-white rounded-lg transition"
+                              className="w-full sm:w-auto px-3 py-1.5 text-xs font-bold bg-red-600/80 hover:bg-red-500 text-white rounded-xl transition"
                             >
-                              Batalkan
+                              Batalkan Proyek
                             </button>
                           ) : (
                             <button
                               onClick={() => startBigProject(proj.id)}
                               disabled={!isUnlocked || !hasStats || activeProjectId !== null}
-                              className={`px-4 py-1.5 text-xs font-extrabold rounded-lg transition ${
+                              className={`w-full sm:w-auto px-4 py-2 text-xs font-extrabold rounded-xl transition ${
                                 isUnlocked && hasStats && activeProjectId === null
                                   ? 'bg-orange-500 hover:bg-orange-400 text-slate-950 shadow-md font-black'
-                                  : 'bg-[#1E2D50] text-slate-500 cursor-not-allowed border border-[#23335A]'
+                                  : 'bg-[#0A0F1D] text-slate-500 cursor-not-allowed border border-[#23335A]'
                               }`}
                             >
-                              {activeProjectId !== null ? 'Sedang Proyek Lain' : 'Mulai Tender Proyek'}
+                              {!isUnlocked
+                                ? `Terkunci (Lv. ${proj.reqLevel})`
+                                : !hasStats
+                                ? 'Atribut Belum Cukup'
+                                : activeProjectId !== null
+                                ? 'Sedang Proyek Lain'
+                                : 'Mulai Tender Proyek'}
                             </button>
                           )}
                         </div>
