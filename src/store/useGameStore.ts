@@ -399,6 +399,7 @@ export const useGameStore = create<GameState>()(
         const item = shopItems.find((i) => i.id === itemId);
         if (!item || item.owned || gold < item.cost) return;
 
+        // Bersenandung hanya saat berhasil membeli aset di toko
         if (soundEnabled) playPosBellSound();
 
         set({
@@ -488,7 +489,7 @@ export const useGameStore = create<GameState>()(
             const newTimeRemaining = proj.timeRemaining - deltaTime;
 
             if (newWorkPoints >= proj.totalWorkPoints) {
-              if (soundEnabled) playPosBellSound();
+              if (soundEnabled) playPosBellSound(); // Berbunyi saat Proyek Besar Selesai!
               updatedBigProjects[projIdx] = {
                 ...proj,
                 currentWorkPoints: proj.totalWorkPoints,
@@ -549,7 +550,7 @@ export const useGameStore = create<GameState>()(
         const nextProgress = taskProgress + progressIncrement;
 
         if (nextProgress >= 100) {
-          if (soundEnabled) playPosBellSound();
+          // TANPA EFEK SUARA PADA TUGAS RUTIN (Sangat Tenang)
           let newGold = gold + bonusGoldFromProj + Math.floor(currentTask.rewardGold * goldBuffMult);
           let newExp = exp + bonusExpFromProj + Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
           let newStats = { ...stats };
