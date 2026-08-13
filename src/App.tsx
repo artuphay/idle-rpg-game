@@ -182,7 +182,7 @@ export default function App() {
 
   const handleStatClick = (stat: 'sta' | 'spd' | 'tel') => {
     setActiveStatTooltip(activeStatTooltip === stat ? null : stat);
-    pressStatCheat(stat); // Memicu Pengecekan Cheat Code
+    pressStatCheat(stat);
   };
 
   return (
@@ -339,6 +339,11 @@ export default function App() {
                   style={{ width: `${Math.min((exp / maxExp) * 100, 100)}%` }}
                 ></div>
               </div>
+              {totalExpMultiplier > 0 && (
+                <p className="text-[10px] text-emerald-400 mt-1 font-semibold text-right">
+                  ⚡ +{(totalExpMultiplier * 100).toFixed(0)}% Bonus EXP Karir
+                </p>
+              )}
             </div>
 
             {/* Total Gaji / Uang DENGAN ANIMASI TEKS MELAYANG */}
@@ -396,7 +401,7 @@ export default function App() {
               )}
             </div>
 
-            {/* Atribut Skill Pos DENGAN PENANGANAN KLIK CHEAT EASTER EGG */}
+            {/* Atribut Skill Pos */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <div>
@@ -1127,6 +1132,7 @@ export default function App() {
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
+            
             <button
               onClick={closeCurrentEvent}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
@@ -1234,7 +1240,7 @@ export default function App() {
           <div className="bg-[#141E36] border-2 border-amber-500 rounded-2xl max-w-xs sm:max-w-md w-full p-6 shadow-2xl space-y-4 relative">
             <button
               onClick={closeCbsConfirmModal}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
               title="Tutup"
             >
               ✕
@@ -1248,7 +1254,7 @@ export default function App() {
               </p>
             </div>
 
-            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-amber-500/30 text-xs space-y-2 text-slate-30 border-amber-500/30 text-xs space-y-2 text-slate-300">
+            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-amber-500/30 text-xs space-y-2 text-slate-300">
               <p className="font-bold text-white border-b border-[#23335A] pb-1.5">Manfaat Cuti Besar (CBS):</p>
               <ul className="space-y-1 text-[11px]">
                 <li className="text-emerald-400 font-bold">✓ Multiplier Gaji Permanen: +{((level - 14) * 2 * 25)}%</li>
