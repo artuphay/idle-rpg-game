@@ -61,6 +61,27 @@ export interface Achievement {
   expBonusMultiplier: number;
 }
 
+export interface PitchOption {
+  text: string;
+  isCorrect: boolean;
+  explanation: string;
+}
+
+export interface ClientProspect {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  reqLevel: number;
+  reqStats: { sta: number; spd: number; tel: number };
+  clientDilemma: string;
+  options: PitchOption[];
+  closingBonusGold: number;
+  closingBonusExp: number;
+  passiveRoyaltyPerSec: number;
+  isClosed: boolean;
+}
+
 export interface ActiveBuff {
   name: string;
   goldMultiplier: number;
@@ -121,6 +142,134 @@ export const INITIAL_TASKS: Task[] = [
   { id: 'train_tel', name: 'Membaca Alamat Tulisan Cakar Ayam', category: 'Pelatihan Kerja', duration: 3, reqLevel: 2, rewardGold: 0, rewardExp: 20, rewardStat: { type: 'tel', amount: 1 } },
   { id: 'train_cert', name: 'Sertifikasi Manajemen Logistik', category: 'Pelatihan Kerja', duration: 5, reqLevel: 7, rewardGold: 0, rewardExp: 60, rewardStat: { type: 'tel', amount: 3 } },
   { id: 'train_leader', name: 'Pelatihan Leadership PosIND', category: 'Pelatihan Kerja', duration: 7, reqLevel: 11, rewardGold: 0, rewardExp: 150, rewardStat: { type: 'sta', amount: 2 } },
+];
+
+export const INITIAL_PROSPECTS: ClientProspect[] = [
+  {
+    id: 'prospect_online_shop',
+    name: 'Toko Fashion Online Grosir',
+    category: 'UMKM & E-Commerce',
+    icon: '🛍️',
+    reqLevel: 2,
+    reqStats: { sta: 10, spd: 12, tel: 10 },
+    clientDilemma: '"Saya kirim 300 paket setiap hari. Kurir ekspedisi lain sering telat jemput dan pencairan uang COD memakan waktu seminggu. Apa solusi Pos Indonesia?"',
+    options: [
+      {
+        text: 'Tawarkan integrasi PosAja B2B dengan jadwal Pick-up harian prioritas, diskon ongkir volume, & pencairan COD H+1 ke Pospay.',
+        isCorrect: true,
+        explanation: 'TEPAT! Klien e-commerce sangat sensitif terhadap kecepatan jemput barang dan perputaran arus kas (cashflow) dari pencairan COD.',
+      },
+      {
+        text: 'Sarankan pemilik toko untuk mengantar sendiri paketnya ke kantor pos cabang setiap sore.',
+        isCorrect: false,
+        explanation: 'Kurang tepat. Klien skala 300 paket/hari membutuhkan fasilitas penjemputan (pick-up service), bukan repot antar sendiri.',
+      },
+    ],
+    closingBonusGold: 3000000,
+    closingBonusExp: 500,
+    passiveRoyaltyPerSec: 5000,
+    isClosed: false,
+  },
+  {
+    id: 'prospect_bumdes',
+    name: 'BUMDes Sejahtera Mandiri',
+    category: 'Keuangan Desa & Retail',
+    icon: '🌾',
+    reqLevel: 5,
+    reqStats: { sta: 12, spd: 12, tel: 14 },
+    clientDilemma: '"Warga desa kami kesulitan membayar listrik, BPJS, dan kirim uang karena bank sangat jauh. Bagaimana Pos Indonesia bisa membantu unit usaha desa kami?"',
+    options: [
+      {
+        text: 'Buka kemitraan Pospay Agen & Agenpos di kantor BUMDes, melayani pembayaran tagihan lengkap dan transfer uang dengan fee bagi hasil.',
+        isCorrect: true,
+        explanation: 'TEPAT! Pospay Agen memberdayakan BUMDes menjadi mini-bank desa sekaligus mendatangkan pendapatan bagi hasil transaksi.',
+      },
+      {
+        text: 'Sarankan warga desa tetap bepergian ke kantor pos kecamatan setiap kali ingin membayar tagihan.',
+        isCorrect: false,
+        explanation: 'Kurang tepat. Menolak kemitraan akan membuang potensi jaringan keagenan PosIND di pelosok desa.',
+      },
+    ],
+    closingBonusGold: 8000000,
+    closingBonusExp: 1200,
+    passiveRoyaltyPerSec: 15000,
+    isClosed: false,
+  },
+  {
+    id: 'prospect_bapenda',
+    name: 'Bapenda / Badan Pendapatan Daerah',
+    category: 'Instansi Pemerintah (B2G)',
+    icon: '🏛️',
+    reqLevel: 9,
+    reqStats: { sta: 15, spd: 15, tel: 18 },
+    clientDilemma: '"Pemerintah daerah ingin mempermudah wajib pajak membayar Pajak Bumi dan Bangunan (PBB) serta retribusi daerah tanpa antrean panjang. Apa proposal terbaik PosIND?"',
+    options: [
+      {
+        text: 'Integrasikan sistem Biller Daerah dengan jaringan Mini ATM / EDC Pospay di seluruh loket kelurahan & aplikasi mobile Pospay.',
+        isCorrect: true,
+        explanation: 'TEPAT! Solusi penerimaan daerah berbasis Pospay & Mini ATM EDC mempercepat pendapatan asli daerah (PAD) Pemda secara akurat.',
+      },
+      {
+        text: 'Minta Pemda membuat aplikasi pembayaran baru dari nol tanpa terhubung ke jaringan loket kantor pos.',
+        isCorrect: false,
+        explanation: 'Kurang tepat. Pemda membutuhkan mitra yang sudah memiliki infrastruktur perbankan dan loket fisik yang tersebar luas.',
+      },
+    ],
+    closingBonusGold: 25000000,
+    closingBonusExp: 3500,
+    passiveRoyaltyPerSec: 50000,
+    isClosed: false,
+  },
+  {
+    id: 'prospect_exporter',
+    name: 'Koperasi Eksportir Kopi Nusantara',
+    category: 'Eksportir & Kargo Global',
+    icon: '☕',
+    reqLevel: 14,
+    reqStats: { sta: 20, spd: 20, tel: 22 },
+    clientDilemma: '"Koperasi kami ingin mengirim sampel biji kopi premium ke pembeli di Jerman dan Jepang dengan aman, cepat, dan dokumen bea cukai resmi."',
+    options: [
+      {
+        text: 'Gunakan layanan Pos Ekspor / EMS (Express Mail Service) dengan penanganan kepabeanan resmi internasional dan tracking end-to-end.',
+        isCorrect: true,
+        explanation: 'TEPAT! Pos Indonesia adalah anggota Universal Postal Union (UPU) dengan akses kepabeanan resmi ke 200+ negara di dunia.',
+      },
+      {
+        text: 'Sarankan pengiriman sampel kopi menggunakan pos reguler domestik biasa.',
+        isCorrect: false,
+        explanation: 'Salah. Kiriman internasional memerlukan dokumen deklarasi pabean (CN22/CN23) dan standar layanan kargo global EMS.',
+      },
+    ],
+    closingBonusGold: 100000000,
+    closingBonusExp: 10000,
+    passiveRoyaltyPerSec: 200000,
+    isClosed: false,
+  },
+  {
+    id: 'prospect_holding_bumn',
+    name: 'Holding BUMN Konstruksi & Industri',
+    category: 'Korporat & Logistik Terpadu',
+    icon: '🏗️',
+    reqLevel: 18,
+    reqStats: { sta: 30, spd: 30, tel: 30 },
+    clientDilemma: '"Holding BUMN kami membutuhkan distribusi dokumen resmi rahasia antar direksi dan pengelolaan gudang suplai sparepart berskala nasional."',
+    options: [
+      {
+        text: 'Tawarkan kontrak Logistik Terpadu PosIND dengan Dedicated Courier Dokumen Rahasia dan Fulfillment Warehouse di 5 kota besar.',
+        isCorrect: true,
+        explanation: 'TEPAT! Pos Indonesia memiliki rekam jejak terpercaya dalam kerahasiaan dokumen negara dan jaringan pergudangan nasional.',
+      },
+      {
+        text: 'Tolak tender karena skala proyek korporat terlalu besar.',
+        isCorrect: false,
+        explanation: 'Salah. Menolak kontrak holding BUMN membuang peluang pendapatan ratusan juta rupiah bagi Pos Indonesia.',
+      },
+    ],
+    closingBonusGold: 500000000,
+    closingBonusExp: 25000,
+    passiveRoyaltyPerSec: 1000000,
+    isClosed: false,
+  },
 ];
 
 export const INITIAL_BIG_PROJECTS: BigProject[] = [
@@ -272,6 +421,7 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
   { id: 'ach_task_200', title: '🏭 Pahlawan Logistik', description: 'Selesaikan 200 Tugas Kantor Pos', icon: '🏭', unlocked: false, expBonusMultiplier: 0.20 },
   { id: 'ach_gold_50m', title: '💰 Sultan PosIND', description: 'Kumpulkan total pendapatan hingga Rp 50 Juta', icon: '💰', unlocked: false, expBonusMultiplier: 0.15 },
   { id: 'ach_proj_1', title: '💼 Juara Tender Proyek', description: 'Selesaikan setidaknya 1 Proyek Besar / Tender', icon: '💼', unlocked: false, expBonusMultiplier: 0.15 },
+  { id: 'ach_partner_1', title: '🤝 Account Executive Handal', description: 'Berhasil closing setidaknya 1 Kemitraan B2B', icon: '🤝', unlocked: false, expBonusMultiplier: 0.20 },
   { id: 'ach_cat_friend', title: '🐱 Sahabat Kucing Pos', description: 'Bantu beri makan kucing kantor pos', icon: '🐱', unlocked: false, expBonusMultiplier: 0.10 },
   { id: 'ach_manager', title: '👔 Manajer Operasional', description: 'Mencapai Jabatan Manajer Operasional (Lv. 13)', icon: '👔', unlocked: false, expBonusMultiplier: 0.15 },
   { id: 'ach_ceo', title: '👑 Direktur Utama PosIND', description: 'Mencapai Jabatan Direktur Utama PosIND (Lv. 25)', icon: '👑', unlocked: false, expBonusMultiplier: 0.50 },
@@ -411,17 +561,22 @@ interface GameState {
   activeCatId: string | null;
   activeProjectId: string | null;
 
+  // B2B Sales & Partnership State
+  prospects: ClientProspect[];
+  activeProspectPitch: ClientProspect | null;
+  pitchFeedback: { isCorrect: boolean; explanation: string; bonusGold: number; bonusExp: number } | null;
+
   cbsCount: number;
   cbsPoints: number;
   showCbsConfirmModal: boolean;
 
-  // Easter Egg Cheat Code Sequence State
+  // Easter Egg Cheat Code
   cheatSequence: string[];
 
   totalTasksCompleted: number;
   totalEarnings: number;
 
-  activeTab: 'tasks' | 'projects' | 'cats' | 'shop' | 'stats';
+  activeTab: 'tasks' | 'projects' | 'partners' | 'cats' | 'shop' | 'stats';
 
   hideLocked: boolean;
   hideLowLevel: boolean;
@@ -441,13 +596,19 @@ interface GameState {
   floatingTextList: FloatingText[];
   levelUpCelebration: { newLevel: number } | null;
 
-  setActiveTab: (tab: 'tasks' | 'projects' | 'cats' | 'shop' | 'stats') => void;
+  setActiveTab: (tab: 'tasks' | 'projects' | 'partners' | 'cats' | 'shop' | 'stats') => void;
   setActiveTask: (taskId: string) => void;
   startBigProject: (projectId: string) => void;
   cancelBigProject: () => void;
   buyShopItem: (itemId: string) => void;
   buyCatMascot: (catId: string) => void;
   setActiveCat: (catId: string | null) => void;
+
+  // B2B Partnership Actions
+  openProspectPitch: (prospectId: string) => void;
+  closeProspectPitch: () => void;
+  submitPitchAnswer: (optionIndex: number) => void;
+
   toggleHideLocked: () => void;
   toggleHideLowLevel: () => void;
   toggleSound: () => void;
@@ -486,6 +647,10 @@ export const useGameStore = create<GameState>()(
       cats: INITIAL_CATS,
       activeCatId: 'cat_oyen',
       activeProjectId: null,
+
+      prospects: INITIAL_PROSPECTS,
+      activeProspectPitch: null,
+      pitchFeedback: null,
 
       cbsCount: 0,
       cbsPoints: 0,
@@ -527,7 +692,55 @@ export const useGameStore = create<GameState>()(
       openCbsConfirmModal: () => set({ showCbsConfirmModal: true }),
       closeCbsConfirmModal: () => set({ showCbsConfirmModal: false }),
 
-      // KODE CHEAT EASTER EGG: STA x5, SPD x2, TEL x5
+      openProspectPitch: (prospectId) => {
+        const prospect = get().prospects.find((p) => p.id === prospectId);
+        if (!prospect || prospect.isClosed) return;
+        set({ activeProspectPitch: prospect, pitchFeedback: null });
+      },
+
+      closeProspectPitch: () => {
+        set({ activeProspectPitch: null, pitchFeedback: null });
+      },
+
+      submitPitchAnswer: (optionIndex) => {
+        const { activeProspectPitch, prospects, gold, exp, totalEarnings, soundEnabled } = get();
+        if (!activeProspectPitch) return;
+
+        const selectedOption = activeProspectPitch.options[optionIndex];
+        if (!selectedOption) return;
+
+        if (selectedOption.isCorrect) {
+          if (soundEnabled) playPosBellSound();
+
+          const updatedProspects = prospects.map((p) =>
+            p.id === activeProspectPitch.id ? { ...p, isClosed: true } : p
+          );
+
+          set({
+            prospects: updatedProspects,
+            gold: gold + activeProspectPitch.closingBonusGold,
+            exp: exp + activeProspectPitch.closingBonusExp,
+            totalEarnings: totalEarnings + activeProspectPitch.closingBonusGold,
+            pitchFeedback: {
+              isCorrect: true,
+              explanation: selectedOption.explanation,
+              bonusGold: activeProspectPitch.closingBonusGold,
+              bonusExp: activeProspectPitch.closingBonusExp,
+            },
+            eventNotification: `🤝 DEAL! Kemitraan "${activeProspectPitch.name}" berhasil di-closing! Royalty +Rp ${activeProspectPitch.passiveRoyaltyPerSec.toLocaleString('id-ID')}/detik aktif!`,
+          });
+        } else {
+          set({
+            pitchFeedback: {
+              isCorrect: false,
+              explanation: selectedOption.explanation,
+              bonusGold: 0,
+              bonusExp: 0,
+            },
+          });
+        }
+      },
+
       pressStatCheat: (stat) => {
         const { cheatSequence, maxExp, soundEnabled } = get();
         const targetPattern = ['sta', 'sta', 'sta', 'sta', 'sta', 'spd', 'spd', 'tel', 'tel', 'tel', 'tel', 'tel'];
@@ -550,8 +763,8 @@ export const useGameStore = create<GameState>()(
         if (newSeq.length === targetPattern.length) {
           if (soundEnabled) playPosBellSound();
           set({
-            gold: 1000000000, // 1 Milyar Rp
-            exp: maxExp, // Full EXP
+            gold: 1000000000,
+            exp: maxExp,
             stats: { sta: 999, spd: 999, tel: 999 },
             cheatSequence: [],
             eventNotification: '🔓 EASTER EGG UNLOCKED! Kode Rahasia PosIND Diaktifkan! (+Rp 1 Milyar, 999 All Stats, & Full EXP)! 🚀',
@@ -674,7 +887,13 @@ export const useGameStore = create<GameState>()(
         const goldPerSec = (currentTask.rewardGold / currentTask.duration) * cbsGoldMultiplier;
         const expPerSec = (currentTask.rewardExp / currentTask.duration) * totalExpBonus;
 
-        const earnedOfflineGold = Math.floor(effectiveOfflineSeconds * goldPerSec * 0.5);
+        // Passive Income dari Mitra Closed
+        const closedPartnersRoyaltyPerSec = state.prospects
+          .filter((p) => p.isClosed)
+          .reduce((sum, p) => sum + p.passiveRoyaltyPerSec, 0);
+
+        const totalOfflineGoldRate = (goldPerSec * 0.5) + (closedPartnersRoyaltyPerSec * 0.5);
+        const earnedOfflineGold = Math.floor(effectiveOfflineSeconds * totalOfflineGoldRate);
         const earnedOfflineExp = Math.floor(effectiveOfflineSeconds * expPerSec * 0.5);
 
         if (earnedOfflineGold > 0 || earnedOfflineExp > 0) {
@@ -782,10 +1001,17 @@ export const useGameStore = create<GameState>()(
 
       gameTick: (deltaTime) => {
         const state = get();
-        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, cats, activeCatId, cbsPoints, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
+        const { activeTaskId, taskProgress, level, exp, maxExp, gold, stats, shopItems, bigProjects, achievements, cats, prospects, activeCatId, cbsPoints, activeProjectId, totalTasksCompleted, totalEarnings, activeBuff, timeUntilNextEvent, currentEvent, floatingTextList, soundEnabled } = state;
 
         const now = Date.now();
         let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
+
+        // Passive Income dari Seluruh Mitra yang Berhasil di-Closing!
+        const totalPartnersRoyaltyPerSec = prospects
+          .filter((p) => p.isClosed)
+          .reduce((sum, p) => sum + p.passiveRoyaltyPerSec, 0);
+
+        const earnedPartnerRoyaltyTick = totalPartnersRoyaltyPerSec * deltaTime;
 
         let updatedAchievements = achievements.map((ach) => {
           if (ach.unlocked) return ach;
@@ -796,6 +1022,7 @@ export const useGameStore = create<GameState>()(
           if (ach.id === 'ach_task_200' && totalTasksCompleted >= 200) shouldUnlock = true;
           if (ach.id === 'ach_gold_50m' && totalEarnings >= 50000000) shouldUnlock = true;
           if (ach.id === 'ach_proj_1' && bigProjects.some((p) => p.completed)) shouldUnlock = true;
+          if (ach.id === 'ach_partner_1' && prospects.some((p) => p.isClosed)) shouldUnlock = true;
           if (ach.id === 'ach_manager' && level >= 13) shouldUnlock = true;
           if (ach.id === 'ach_ceo' && level >= 25) shouldUnlock = true;
 
@@ -890,7 +1117,7 @@ export const useGameStore = create<GameState>()(
 
         if (!activeTaskId) {
           set({
-            gold: gold + bonusGoldFromProj,
+            gold: gold + bonusGoldFromProj + earnedPartnerRoyaltyTick,
             exp: exp + bonusExpFromProj,
             bigProjects: updatedBigProjects,
             achievements: updatedAchievements,
@@ -921,7 +1148,7 @@ export const useGameStore = create<GameState>()(
           const earnedGold = Math.floor(currentTask.rewardGold * goldBuffMult * cbsGoldMultiplier);
           const earnedExp = Math.floor(currentTask.rewardExp * totalExpBonus * expBuffMult);
 
-          let newGold = gold + bonusGoldFromProj + earnedGold;
+          let newGold = gold + bonusGoldFromProj + earnedGold + earnedPartnerRoyaltyTick;
           let newExp = exp + bonusExpFromProj + earnedExp;
           let newStats = { ...stats };
 
@@ -962,7 +1189,7 @@ export const useGameStore = create<GameState>()(
             achievements: updatedAchievements,
             activeProjectId: nextActiveProjectId,
             totalTasksCompleted: totalTasksCompleted + 1,
-            totalEarnings: totalEarnings + currentTask.rewardGold + bonusGoldFromProj,
+            totalEarnings: totalEarnings + currentTask.rewardGold + bonusGoldFromProj + earnedPartnerRoyaltyTick,
             timeUntilNextEvent: nextEventTimer,
             currentEvent: nextCurrentEvent,
             activeBuff: nextBuff,
@@ -972,7 +1199,7 @@ export const useGameStore = create<GameState>()(
           });
         } else {
           set({
-            gold: gold + bonusGoldFromProj,
+            gold: gold + bonusGoldFromProj + earnedPartnerRoyaltyTick,
             exp: exp + bonusExpFromProj,
             taskProgress: nextProgress,
             bigProjects: updatedBigProjects,

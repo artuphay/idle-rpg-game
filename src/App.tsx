@@ -22,6 +22,9 @@ export default function App() {
     bigProjects,
     achievements,
     cats,
+    prospects,
+    activeProspectPitch,
+    pitchFeedback,
     activeCatId,
     cbsCount,
     cbsPoints,
@@ -49,6 +52,9 @@ export default function App() {
     buyShopItem,
     buyCatMascot,
     setActiveCat,
+    openProspectPitch,
+    closeProspectPitch,
+    submitPitchAnswer,
     toggleHideLocked,
     toggleHideLowLevel,
     toggleSound,
@@ -158,6 +164,11 @@ export default function App() {
   const cbsGoldBonusMultiplier = cbsPoints * 0.25;
   const totalExpMultiplier = activeShopMultiplier + activeAchMultiplier + cbsExpBonusMultiplier;
 
+  // Total Royalty Kemitraan per Detik
+  const totalRoyaltyPerSec = prospects
+    .filter((p) => p.isClosed)
+    .reduce((sum, p) => sum + p.passiveRoyaltyPerSec, 0);
+
   const filteredTasks = INITIAL_TASKS.filter((task) => {
     const isUnlocked = level >= task.reqLevel;
     const isActive = activeTaskId === task.id;
@@ -248,60 +259,70 @@ export default function App() {
             Artuphay Gabut di Pos Indonesia
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            Simulasi Karir Pegawai PosIND — Kerjakan Tugas, Raih Gaji, Rawat Kucing, & Beli Aset Logistik!
+            Simulasi Karir & Kemitraan B2B PosIND — Kerjakan Tugas, Prospek Mitra, & Dapatkan Royalty!
           </p>
 
-          {/* Navigation Tabs */}
-          <div className="grid grid-cols-2 sm:flex sm:justify-center gap-2 mt-4">
+          {/* Navigation Tabs - Grid Rapi */}
+          <div className="grid grid-cols-3 sm:flex sm:justify-center gap-2 mt-4 text-[11px] sm:text-xs">
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+              className={`px-3 py-2 font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'tasks'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              📋 Tugas & Pelatihan
+              📋 Tugas
+            </button>
+            <button
+              onClick={() => setActiveTab('partners')}
+              className={`px-3 py-2 font-bold rounded-xl transition-all active:scale-95 ${
+                activeTab === 'partners'
+                  ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
+                  : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
+              }`}
+            >
+              🤝 Sales B2B
             </button>
             <button
               onClick={() => setActiveTab('projects')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+              className={`px-3 py-2 font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'projects'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              💼 Proyek Besar
+              💼 Tender
             </button>
             <button
               onClick={() => setActiveTab('cats')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+              className={`px-3 py-2 font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'cats'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              🐱 Maskot Kucing
+              🐱 Maskot
             </button>
             <button
               onClick={() => setActiveTab('shop')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+              className={`px-3 py-2 font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'shop'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              🛒 Toko Aset
+              🛒 Toko
             </button>
             <button
               onClick={() => setActiveTab('stats')}
-              className={`px-3 sm:px-4 py-2 text-xs font-bold rounded-xl transition-all active:scale-95 ${
+              className={`px-3 py-2 font-bold rounded-xl transition-all active:scale-95 ${
                 activeTab === 'stats'
                   ? 'bg-orange-500 text-slate-950 shadow-md shadow-orange-500/20 font-black'
                   : 'bg-[#0A0F1D] text-slate-300 hover:bg-[#1E2D50] border border-[#23335A]'
               }`}
             >
-              🏆 Statistik & Lencana
+              🏆 Statistik
             </button>
           </div>
         </div>
@@ -346,10 +367,17 @@ export default function App() {
               )}
             </div>
 
-            {/* Total Gaji / Uang DENGAN ANIMASI TEKS MELAYANG */}
-            <div className="bg-[#0A0F1D] p-3 rounded-xl border border-orange-500/20 relative">
+            {/* Total Gaji & Royalty Pasif Kemitraan */}
+            <div className="bg-[#0A0F1D] p-3 rounded-xl border border-orange-500/20 relative space-y-1">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Gaji / Uang Terkumpul</p>
-              <p className="text-xl font-black text-emerald-400 mt-0.5">{formatRupiah(gold)}</p>
+              <p className="text-xl font-black text-emerald-400">{formatRupiah(gold)}</p>
+
+              {totalRoyaltyPerSec > 0 && (
+                <p className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 border-t border-[#23335A] pt-1">
+                  <span>📈 Royalty Kemitraan:</span>
+                  <span>+{formatRupiah(totalRoyaltyPerSec)}/s</span>
+                </p>
+              )}
 
               <div className="absolute top-2 right-3 pointer-events-none flex flex-col items-end">
                 {floatingTextList.map((item) => (
@@ -493,8 +521,6 @@ export default function App() {
             {/* TAB 1: TUGAS & PEKERJAAN */}
             {activeTab === 'tasks' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-                
-                {/* Control Filters */}
                 <div className="space-y-3 border-b border-[#23335A] pb-3">
                   <div className="flex flex-wrap justify-between items-center gap-2">
                     <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">
@@ -560,7 +586,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* List Task */}
                 <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
                   {filteredTasks.length === 0 ? (
                     <div className="text-center py-8 text-slate-500 text-xs italic">
@@ -658,7 +683,115 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 2: PROYEK BESAR / TENDER */}
+            {/* TAB 2: PROSPEK KEMITRAAN & SALES B2B */}
+            {activeTab === 'partners' && (
+              <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+                <div className="border-b border-[#23335A] pb-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">
+                        Divisi Kemitraan & Sales PosIND (B2B/B2G)
+                      </h2>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Prospek mitra bisnis nyata, pilih solusi PosIND yang tepat, & raih royalti pasif harian!
+                      </p>
+                    </div>
+                    {totalRoyaltyPerSec > 0 && (
+                      <span className="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded-xl font-black shrink-0">
+                        +{formatRupiah(totalRoyaltyPerSec)}/s
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-1">
+                  {prospects.map((prospect) => {
+                    const isUnlocked = level >= prospect.reqLevel;
+                    const hasStats = stats.sta >= prospect.reqStats.sta && stats.spd >= prospect.reqStats.spd && stats.tel >= prospect.reqStats.tel;
+
+                    return (
+                      <div
+                        key={prospect.id}
+                        className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
+                          prospect.isClosed
+                            ? 'bg-emerald-950/20 border-emerald-800/60'
+                            : isUnlocked && hasStats
+                            ? 'bg-[#0A0F1D]/80 border-[#23335A] hover:border-slate-500'
+                            : 'bg-[#0A0F1D]/40 border-[#1C2B4E] opacity-60'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start gap-2 border-b border-[#23335A]/50 pb-2">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-2xl p-1.5 bg-[#0A0F1D] rounded-xl border border-[#23335A] shrink-0">
+                              {prospect.icon}
+                            </span>
+                            <div>
+                              <h3 className="font-extrabold text-white text-xs sm:text-sm leading-snug">{prospect.name}</h3>
+                              <span className="text-[9px] bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded-full font-bold">
+                                {prospect.category}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className="text-xs font-black text-emerald-400 block">
+                              +{formatRupiah(prospect.passiveRoyaltyPerSec)}/s
+                            </span>
+                            <span className="text-[9px] text-slate-400 font-semibold">Royalty Pasif</span>
+                          </div>
+                        </div>
+
+                        {/* Syarat Atribut */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+                          <div className="flex flex-wrap gap-1.5">
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.sta >= prospect.reqStats.sta ? 'bg-red-950/80 text-red-300 border border-red-800' : 'bg-slate-900 text-slate-500'}`}>
+                              STA ≥ {prospect.reqStats.sta}
+                            </span>
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.spd >= prospect.reqStats.spd ? 'bg-amber-950/80 text-amber-300 border border-amber-800' : 'bg-slate-900 text-slate-500'}`}>
+                              SPD ≥ {prospect.reqStats.spd}
+                            </span>
+                            <span className={`text-[9px] sm:text-[10px] px-2 py-0.5 rounded font-bold ${stats.tel >= prospect.reqStats.tel ? 'bg-blue-950/80 text-blue-300 border border-blue-800' : 'bg-slate-900 text-slate-500'}`}>
+                              TEL ≥ {prospect.reqStats.tel}
+                            </span>
+                          </div>
+
+                          <span className="text-[10px] text-orange-400 font-bold">
+                            Bonus Closing: {formatRupiah(prospect.closingBonusGold)}
+                          </span>
+                        </div>
+
+                        {/* Tombol Pitching */}
+                        <div className="mt-3 pt-2 border-t border-[#23335A]/50 flex justify-end items-center">
+                          {prospect.isClosed ? (
+                            <span className="text-xs font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-lg">
+                              ✓ Mitra Aktif (Kontrak PKS Terbit)
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => openProspectPitch(prospect.id)}
+                              disabled={!isUnlocked || !hasStats}
+                              className={`w-full sm:w-auto px-4 py-2 text-xs font-extrabold rounded-xl transition active:scale-95 ${
+                                isUnlocked && hasStats
+                                  ? 'bg-orange-500 hover:bg-orange-400 text-slate-950 shadow-md font-black'
+                                  : 'bg-[#0A0F1D] text-slate-500 cursor-not-allowed border border-[#23335A]'
+                              }`}
+                            >
+                              {!isUnlocked
+                                ? `Terkunci (Lv. ${prospect.reqLevel})`
+                                : !hasStats
+                                ? 'Atribut Belum Cukup'
+                                : 'Mulai Pitching Prospek 🤝'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: PROYEK BESAR / TENDER */}
             {activeTab === 'projects' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <div className="border-b border-[#23335A] pb-3">
@@ -772,7 +905,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 3: MASKOT KUCING POS */}
+            {/* TAB 4: MASKOT KUCING POS */}
             {activeTab === 'cats' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <div className="border-b border-[#23335A] pb-3">
@@ -867,7 +1000,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 4: TOKO ASET */}
+            {/* TAB 5: TOKO ASET */}
             {activeTab === 'shop' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
@@ -942,7 +1075,7 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 5: STATISTIK, LENCANA & CUTI BESAR (CBS) */}
+            {/* TAB 6: STATISTIK, LENCANA & CUTI BESAR (CBS) */}
             {activeTab === 'stats' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <h2 className="text-xs font-bold text-orange-400 border-b border-[#23335A] pb-2 uppercase tracking-wider">
@@ -1087,11 +1220,80 @@ export default function App() {
         </div>
       </div>
 
-      {/* POPUP MODAL MINI GAME SORTIR KILAT (15 DETIK) */}
+      {/* MODAL SIMULASI PITCHING SALES B2B & KEMITRAAN */}
+      {activeProspectPitch && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-sm sm:max-w-lg w-full p-4 sm:p-6 shadow-2xl relative space-y-4">
+            <button
+              onClick={closeProspectPitch}
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              title="Tutup"
+            >
+              ✕
+            </button>
+
+            {/* Header Prospek */}
+            <div className="flex items-center gap-2.5 pr-6 border-b border-[#23335A] pb-3">
+              <span className="text-3xl">{activeProspectPitch.icon}</span>
+              <div>
+                <h3 className="font-extrabold text-white text-sm sm:text-base">{activeProspectPitch.name}</h3>
+                <span className="text-[10px] text-orange-400 font-bold">{activeProspectPitch.category}</span>
+              </div>
+            </div>
+
+            {/* Dilema / Kebutuhan Klien */}
+            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] space-y-1">
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Pertanyaan / Kebutuhan Klien:</span>
+              <p className="text-xs text-slate-200 italic leading-relaxed">{activeProspectPitch.clientDilemma}</p>
+            </div>
+
+            {/* HASIL FEEDBACK PITCHING */}
+            {pitchFeedback ? (
+              <div className={`p-3.5 rounded-xl border space-y-2 ${
+                pitchFeedback.isCorrect ? 'bg-emerald-950/40 border-emerald-500' : 'bg-red-950/40 border-red-500'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{pitchFeedback.isCorrect ? '🎉' : '❌'}</span>
+                  <p className={`font-black text-xs sm:text-sm ${pitchFeedback.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {pitchFeedback.isCorrect ? 'PITCHING SUKSES! KONTRAK DEAL!' : 'PITCHING KURANG TEPAT!'}
+                  </p>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">{pitchFeedback.explanation}</p>
+                {pitchFeedback.isCorrect && (
+                  <p className="text-xs font-bold text-emerald-400 pt-1">
+                    Bonus Closing: +{formatRupiah(pitchFeedback.bonusGold)} & +{pitchFeedback.bonusExp} EXP!
+                  </p>
+                )}
+                <button
+                  onClick={closeProspectPitch}
+                  className="w-full py-2 mt-2 bg-orange-500 hover:bg-orange-400 text-slate-950 font-black text-xs rounded-xl transition"
+                >
+                  Lanjutkan
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold text-slate-300">Pilih Solusi Pos Indonesia yang Tepat:</p>
+                {activeProspectPitch.options.map((option, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => submitPitchAnswer(idx)}
+                    className="w-full text-left p-3 rounded-xl bg-[#0A0F1D] hover:bg-[#1E2D50] border border-[#23335A] hover:border-orange-500 text-[11px] sm:text-xs text-slate-200 transition font-medium active:scale-95 leading-relaxed"
+                  >
+                    <span className="font-bold text-orange-400 mr-1.5">{String.fromCharCode(65 + idx)}.</span>
+                    {option.text}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* POPUP MODAL MINI GAME */}
       {showMiniGameModal && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-sm w-full p-6 text-center shadow-2xl space-y-4 relative">
-            
             <button
               onClick={closeMiniGameModal}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
@@ -1132,7 +1334,6 @@ export default function App() {
       {currentEvent && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-xs sm:max-w-md w-full p-4 sm:p-6 shadow-2xl relative space-y-3 sm:space-y-4">
-            
             <button
               onClick={closeCurrentEvent}
               className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
@@ -1240,7 +1441,7 @@ export default function App() {
           <div className="bg-[#141E36] border-2 border-amber-500 rounded-2xl max-w-xs sm:max-w-md w-full p-6 shadow-2xl space-y-4 relative">
             <button
               onClick={closeCbsConfirmModal}
-              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
+              className="absolute top-3 right-3 text-slate-400 hover:text-white bg-[#0A0F1D] hover:bg-[#1E2D50] w-7 h-7 rounded-full font-extrabold text-xs flex items-center justify-center border border-[#23335A] transition shadow-md"
               title="Tutup"
             >
               ✕
