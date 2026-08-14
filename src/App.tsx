@@ -24,6 +24,7 @@ export default function App() {
     cats,
     prospects,
     activeProspectPitch,
+    pitchStageIndex,
     pitchFeedback,
     activeCatId,
     cbsCount,
@@ -55,6 +56,7 @@ export default function App() {
     openProspectPitch,
     closeProspectPitch,
     submitPitchAnswer,
+    nextPitchStage,
     toggleHideLocked,
     toggleHideLowLevel,
     toggleSound,
@@ -164,7 +166,6 @@ export default function App() {
   const cbsGoldBonusMultiplier = cbsPoints * 0.25;
   const totalExpMultiplier = activeShopMultiplier + activeAchMultiplier + cbsExpBonusMultiplier;
 
-  // Total Royalty Kemitraan per Detik
   const totalRoyaltyPerSec = prospects
     .filter((p) => p.isClosed)
     .reduce((sum, p) => sum + p.passiveRoyaltyPerSec, 0);
@@ -195,6 +196,8 @@ export default function App() {
     setActiveStatTooltip(activeStatTooltip === stat ? null : stat);
     pressStatCheat(stat);
   };
+
+  const currentPitchStage = activeProspectPitch ? activeProspectPitch.stages[pitchStageIndex] : null;
 
   return (
     <div className="min-h-screen bg-[#0A0F1D] text-slate-100 p-3 sm:p-6 md:p-8 font-sans select-none antialiased relative overflow-x-hidden">
@@ -259,10 +262,10 @@ export default function App() {
             Artuphay Gabut di Pos Indonesia
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            Simulasi Karir & Kemitraan B2B PosIND — Kerjakan Tugas, Prospek Mitra, & Dapatkan Royalty!
+            Simulasi Karir & Kemitraan B2B PosIND — Kerjakan Tugas, Prospek Mitra 3 Tahap, & Dapatkan Royalty!
           </p>
 
-          {/* Navigation Tabs - Grid Rapi */}
+          {/* Navigation Tabs */}
           <div className="grid grid-cols-3 sm:flex sm:justify-center gap-2 mt-4 text-[11px] sm:text-xs">
             <button
               onClick={() => setActiveTab('tasks')}
@@ -683,17 +686,17 @@ export default function App() {
               </div>
             )}
 
-            {/* TAB 2: PROSPEK KEMITRAAN & SALES B2B */}
+            {/* TAB 2: PROSPEK KEMITRAAN & SALES B2B (3 TAHAPAN) */}
             {activeTab === 'partners' && (
               <div className="bg-[#141E36] border border-[#23335A] rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
                 <div className="border-b border-[#23335A] pb-3">
                   <div className="flex justify-between items-start">
                     <div>
                       <h2 className="text-xs font-bold text-orange-400 uppercase tracking-wider">
-                        Divisi Kemitraan & Sales PosIND (B2B/B2G)
+                        Divisi Kemitraan & Sales PosIND (3-Stage Pipeline)
                       </h2>
                       <p className="text-[11px] text-slate-400 mt-0.5">
-                        Prospek mitra bisnis nyata, pilih solusi PosIND yang tepat, & raih royalti pasif harian!
+                        Tuntaskan 3 tahap pitching (Analisis, Solusi, & Kontrak) untuk menerbitkan PKS & royalti pasif harian!
                       </p>
                     </div>
                     {totalRoyaltyPerSec > 0 && (
@@ -764,7 +767,7 @@ export default function App() {
                         <div className="mt-3 pt-2 border-t border-[#23335A]/50 flex justify-end items-center">
                           {prospect.isClosed ? (
                             <span className="text-xs font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-lg">
-                              ✓ Mitra Aktif (Kontrak PKS Terbit)
+                              ✓ Mitra Aktif (3/3 Tahap Selesai)
                             </span>
                           ) : (
                             <button
@@ -780,7 +783,7 @@ export default function App() {
                                 ? `Terkunci (Lv. ${prospect.reqLevel})`
                                 : !hasStats
                                 ? 'Atribut Belum Cukup'
-                                : 'Mulai Pitching Prospek 🤝'}
+                                : 'Mulai Pitching (3 Tahap) 🤝'}
                             </button>
                           )}
                         </div>
@@ -1220,8 +1223,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* MODAL SIMULASI PITCHING SALES B2B & KEMITRAAN */}
-      {activeProspectPitch && (
+      {/* MODAL SIMULASI PITCHING SALES B2B DENGAN 3 TAHAPAN LENGKAP */}
+      {activeProspectPitch && currentPitchStage && (
         <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-[#141E36] border-2 border-orange-500 rounded-2xl max-w-sm sm:max-w-lg w-full p-4 sm:p-6 shadow-2xl relative space-y-4">
             <button
@@ -1232,49 +1235,82 @@ export default function App() {
               ✕
             </button>
 
-            {/* Header Prospek */}
-            <div className="flex items-center gap-2.5 pr-6 border-b border-[#23335A] pb-3">
-              <span className="text-3xl">{activeProspectPitch.icon}</span>
-              <div>
-                <h3 className="font-extrabold text-white text-sm sm:text-base">{activeProspectPitch.name}</h3>
-                <span className="text-[10px] text-orange-400 font-bold">{activeProspectPitch.category}</span>
+            {/* Header Prospek & Indikator Tahap (1/3, 2/3, 3/3) */}
+            <div className="border-b border-[#23335A] pb-3">
+              <div className="flex items-center justify-between pr-6 mb-2">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl p-1.5 bg-[#0A0F1D] rounded-xl border border-[#23335A] shrink-0">
+                    {activeProspectPitch.icon}
+                  </span>
+                  <div>
+                    <h3 className="font-extrabold text-white text-xs sm:text-sm">{activeProspectPitch.name}</h3>
+                    <span className="text-[10px] text-orange-400 font-bold">{activeProspectPitch.category}</span>
+                  </div>
+                </div>
+
+                <span className="text-[10px] font-black bg-orange-500/20 text-orange-300 border border-orange-500/40 px-2.5 py-1 rounded-xl shrink-0">
+                  Tahap {pitchStageIndex + 1} / {activeProspectPitch.stages.length}
+                </span>
+              </div>
+
+              {/* Progress Bar 3 Tahap */}
+              <div className="w-full bg-[#0A0F1D] rounded-full h-1.5 overflow-hidden border border-[#23335A]">
+                <div
+                  className="bg-orange-500 h-full rounded-full transition-all duration-300"
+                  style={{ width: `${((pitchStageIndex + 1) / activeProspectPitch.stages.length) * 100}%` }}
+                ></div>
               </div>
             </div>
 
-            {/* Dilema / Kebutuhan Klien */}
-            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] space-y-1">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block">Pertanyaan / Kebutuhan Klien:</span>
-              <p className="text-xs text-slate-200 italic leading-relaxed">{activeProspectPitch.clientDilemma}</p>
+            {/* Judul Tahap & Dilema / Pertanyaan Klien */}
+            <div className="bg-[#0A0F1D] p-3.5 rounded-xl border border-[#23335A] space-y-1.5">
+              <span className="text-[10px] text-orange-400 font-black uppercase tracking-wider block">
+                {currentPitchStage.stageTitle}
+              </span>
+              <p className="text-xs text-slate-200 italic leading-relaxed">{currentPitchStage.clientDilemma}</p>
             </div>
 
-            {/* HASIL FEEDBACK PITCHING */}
+            {/* HASIL FEEDBACK PITCHING TAHAP INI */}
             {pitchFeedback ? (
-              <div className={`p-3.5 rounded-xl border space-y-2 ${
+              <div className={`p-3.5 rounded-xl border space-y-2.5 ${
                 pitchFeedback.isCorrect ? 'bg-emerald-950/40 border-emerald-500' : 'bg-red-950/40 border-red-500'
               }`}>
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{pitchFeedback.isCorrect ? '🎉' : '❌'}</span>
                   <p className={`font-black text-xs sm:text-sm ${pitchFeedback.isCorrect ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {pitchFeedback.isCorrect ? 'PITCHING SUKSES! KONTRAK DEAL!' : 'PITCHING KURANG TEPAT!'}
+                    {pitchFeedback.isCompleteDeal
+                      ? 'SELAMAT! KONTRAK PKS RESMI DEAL!'
+                      : pitchFeedback.isCorrect
+                      ? `TAHAP ${pitchStageIndex + 1} BERHASIL DISOLUSIKAN!`
+                      : 'PILIHAN KURANG TEPAT! COBA ANALISIS LAGI:'}
                   </p>
                 </div>
+
                 <p className="text-[11px] text-slate-300 leading-relaxed">{pitchFeedback.explanation}</p>
-                {pitchFeedback.isCorrect && (
-                  <p className="text-xs font-bold text-emerald-400 pt-1">
-                    Bonus Closing: +{formatRupiah(pitchFeedback.bonusGold)} & +{pitchFeedback.bonusExp} EXP!
-                  </p>
+
+                {pitchFeedback.isCompleteDeal && (
+                  <div className="bg-[#0A0F1D] p-2.5 rounded-lg border border-emerald-500/40 text-xs font-bold text-emerald-400 space-y-0.5">
+                    <p>💰 Bonus Closing: +{formatRupiah(activeProspectPitch.closingBonusGold)}</p>
+                    <p>✨ Bonus EXP: +{activeProspectPitch.closingBonusExp} EXP</p>
+                    <p>📈 Royalty Pasif Aktif: +{formatRupiah(activeProspectPitch.passiveRoyaltyPerSec)}/detik</p>
+                  </div>
                 )}
+
                 <button
-                  onClick={closeProspectPitch}
-                  className="w-full py-2 mt-2 bg-orange-500 hover:bg-orange-400 text-slate-950 font-black text-xs rounded-xl transition"
+                  onClick={nextPitchStage}
+                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-400 text-slate-950 font-black text-xs rounded-xl transition shadow-md active:scale-95"
                 >
-                  Lanjutkan
+                  {pitchFeedback.isCompleteDeal
+                    ? 'Selesai & Nikmati Royalty! 🚀'
+                    : pitchFeedback.isCorrect
+                    ? `Lanjut ke Tahap ${pitchStageIndex + 2} ➔`
+                    : 'Coba Jawab Ulang 🔄'}
                 </button>
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-[11px] font-bold text-slate-300">Pilih Solusi Pos Indonesia yang Tepat:</p>
-                {activeProspectPitch.options.map((option, idx) => (
+                <p className="text-[11px] font-bold text-slate-300">Pilih Solusi / Proposal PosIND Terbaik:</p>
+                {currentPitchStage.options.map((option, idx) => (
                   <button
                     key={idx}
                     onClick={() => submitPitchAnswer(idx)}

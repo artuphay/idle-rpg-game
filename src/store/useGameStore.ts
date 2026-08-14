@@ -67,6 +67,12 @@ export interface PitchOption {
   explanation: string;
 }
 
+export interface PitchStage {
+  stageTitle: string;
+  clientDilemma: string;
+  options: PitchOption[];
+}
+
 export interface ClientProspect {
   id: string;
   name: string;
@@ -74,8 +80,7 @@ export interface ClientProspect {
   icon: string;
   reqLevel: number;
   reqStats: { sta: number; spd: number; tel: number };
-  clientDilemma: string;
-  options: PitchOption[];
+  stages: PitchStage[];
   closingBonusGold: number;
   closingBonusExp: number;
   passiveRoyaltyPerSec: number;
@@ -152,23 +157,60 @@ export const INITIAL_PROSPECTS: ClientProspect[] = [
     icon: '🛍️',
     reqLevel: 2,
     reqStats: { sta: 10, spd: 12, tel: 10 },
-    clientDilemma: '"Saya kirim 300 paket setiap hari. Kurir ekspedisi lain sering telat jemput dan pencairan uang COD memakan waktu seminggu. Apa solusi Pos Indonesia?"',
-    options: [
-      {
-        text: 'Tawarkan integrasi PosAja B2B dengan jadwal Pick-up harian prioritas, diskon ongkir volume, & pencairan COD H+1 ke Pospay.',
-        isCorrect: true,
-        explanation: 'TEPAT! Klien e-commerce sangat sensitif terhadap kecepatan jemput barang dan perputaran arus kas (cashflow) dari pencairan COD.',
-      },
-      {
-        text: 'Sarankan pemilik toko untuk mengantar sendiri paketnya ke kantor pos cabang setiap sore.',
-        isCorrect: false,
-        explanation: 'Kurang tepat. Klien skala 300 paket/hari membutuhkan fasilitas penjemputan (pick-up service), bukan repot antar sendiri.',
-      },
-    ],
     closingBonusGold: 3000000,
     closingBonusExp: 500,
     passiveRoyaltyPerSec: 5000,
     isClosed: false,
+    stages: [
+      {
+        stageTitle: 'Tahap 1: Analisis Kebutuhan Penjemputan',
+        clientDilemma: '"Toko kami mengirim 300-500 paket setiap hari. Masalah terbesar kami adalah kurir ekspedisi lain sering telat jemput barang sehingga pengiriman tertunda. Bagaimana PosIND mengatasi ini?"',
+        options: [
+          {
+            text: 'Tawarkan integrasi PosAja B2B dengan jadwal Pick-up Terjadwal Harian dan kurir dedicated tanpa biaya tambahan.',
+            isCorrect: true,
+            explanation: 'TEPAT! Kepastian jadwal penjemputan paket harian adalah nilai jual utama yang dicari seller e-commerce volume besar.',
+          },
+          {
+            text: 'Sarankan staf toko mengantar sendiri ratusan karung paket ke kantor pos cabang terdekat.',
+            isCorrect: false,
+            explanation: 'Kurang tepat. Seller volume ratusan paket/hari membutuhkan layanan jemput barang (pick-up service).',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 2: Solusi Likuiditas & Pembayaran COD',
+        clientDilemma: '"Hampir 60% pembeli kami memilih metode Cash on Delivery (COD). Di ekspedisi lama, dana COD baru cair 7 hari kerja. Apa komitmen Pos Indonesia?"',
+        options: [
+          {
+            text: 'Tawarkan fasilitas PosAja COD dengan pencairan dana otomatis H+1 langsung ke rekening merchant / saldo Pospay.',
+            isCorrect: true,
+            explanation: 'TEPAT! Kecepatan pencairan dana COD H+1 sangat krusial bagi perputaran arus kas (cashflow) toko online.',
+          },
+          {
+            text: 'Sarankan toko menghapus opsi COD dan hanya menerima transfer bank manual.',
+            isCorrect: false,
+            explanation: 'Kurang tepat. Menghapus COD akan menurunkan angka konversi penjualan online seller hingga 40%.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 3: Negosiasi & Penandatanganan PKS',
+        clientDilemma: '"Jika kami mengalihkan 100% kiriman kami ke Pos Indonesia, apakah ada kontrak resmi dengan skema diskon volume bulanan?"',
+        options: [
+          {
+            text: 'Terbitkan draf Perjanjian Kerja Sama (PKS) resmi korporat dengan skema diskon progresif berdasarkan volume kiriman bulanan.',
+            isCorrect: true,
+            explanation: 'DEAL! PKS dengan skema diskon volume mengunci loyalitas merchant untuk bermitra jangka panjang dengan PosIND.',
+          },
+          {
+            text: 'Berikan janji diskon lisan tanpa membuat dokumen kontrak PKS resmi.',
+            isCorrect: false,
+            explanation: 'Salah. Kerja sama kemitraan B2B wajib memiliki payung hukum PKS resmi agar hak dan kewajiban kedua pihak terjamin.',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'prospect_bumdes',
@@ -177,23 +219,60 @@ export const INITIAL_PROSPECTS: ClientProspect[] = [
     icon: '🌾',
     reqLevel: 5,
     reqStats: { sta: 12, spd: 12, tel: 14 },
-    clientDilemma: '"Warga desa kami kesulitan membayar listrik, BPJS, dan kirim uang karena bank sangat jauh. Bagaimana Pos Indonesia bisa membantu unit usaha desa kami?"',
-    options: [
-      {
-        text: 'Buka kemitraan Pospay Agen & Agenpos di kantor BUMDes, melayani pembayaran tagihan lengkap dan transfer uang dengan fee bagi hasil.',
-        isCorrect: true,
-        explanation: 'TEPAT! Pospay Agen memberdayakan BUMDes menjadi mini-bank desa sekaligus mendatangkan pendapatan bagi hasil transaksi.',
-      },
-      {
-        text: 'Sarankan warga desa tetap bepergian ke kantor pos kecamatan setiap kali ingin membayar tagihan.',
-        isCorrect: false,
-        explanation: 'Kurang tepat. Menolak kemitraan akan membuang potensi jaringan keagenan PosIND di pelosok desa.',
-      },
-    ],
     closingBonusGold: 8000000,
     closingBonusExp: 1200,
     passiveRoyaltyPerSec: 15000,
     isClosed: false,
+    stages: [
+      {
+        stageTitle: 'Tahap 1: Mengatasi Akses Keuangan Desa',
+        clientDilemma: '"Warga desa kami harus menempuh jarak 15 km hanya untuk membayar listrik, BPJS, atau mengambil kiriman uang dari anak di rantau. Bagaimana BUMDes bisa hadir?"',
+        options: [
+          {
+            text: 'Buka kemitraan Pospay Agen di kantor BUMDes untuk melayani transfer uang, pembayaran tagihan lengkap, dan penerimaan kiriman paket.',
+            isCorrect: true,
+            explanation: 'TEPAT! Pospay Agen memberdayakan BUMDes menjadi mini-bank dan loket serba bisa di pelosok desa.',
+          },
+          {
+            text: 'Minta warga desa tetap bersabar bepergian ke kantor pos kecamatan.',
+            isCorrect: false,
+            explanation: 'Kurang tepat. Ini membuang peluang perluasan jaringan layanan inklusi keuangan Pos Indonesia di pedesaan.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 2: Skema Bagi Hasil (Fee Sharing)',
+        clientDilemma: '"Pengurus desa bertanya, bagaimana skema keuntungan finansial bagi kas desa dari operasional Pospay Agen ini?"',
+        options: [
+          {
+            text: 'Jelaskan skema fee sharing kompetitif per transaksi yang langsung masuk secara otomatis ke saldo kas operasional BUMDes.',
+            isCorrect: true,
+            explanation: 'TEPAT! Skema bagi hasil per transaksi memberikan pendapatan asli desa (PADes) yang transparan dan berkesinambungan.',
+          },
+          {
+            text: 'Katakan bahwa BUMDes hanya beroperasi sosial tanpa mendapatkan keuntungan finansial apa pun.',
+            isCorrect: false,
+            explanation: 'Kurang tepat. BUMDes adalah badan usaha yang membutuhkan insentif pendapatan operasional.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 3: Pendampingan & Perangkat Operasional',
+        clientDilemma: '"Staf operator BUMDes masih awam dengan sistem perbankan digital. Apakah PosIND menyediakan mesin EDC dan pelatihan?"',
+        options: [
+          {
+            text: 'Sediakan perangkat EDC Pospay resmi beserta modul pelatihan intensif dan pendampingan staf oleh Account Executive PosIND.',
+            isCorrect: true,
+            explanation: 'DEAL! Pelatihan dan pendampingan memastikan transaksi keuangan desa berjalan aman dan lancar.',
+          },
+          {
+            text: 'Biarkan operator desa mempelajari sistem secara mandiri tanpa panduan resmi.',
+            isCorrect: false,
+            explanation: 'Salah. Transaksi keuangan memerlukan sertifikasi dan pemahaman SOP yang tepat.',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'prospect_bapenda',
@@ -202,23 +281,60 @@ export const INITIAL_PROSPECTS: ClientProspect[] = [
     icon: '🏛️',
     reqLevel: 9,
     reqStats: { sta: 15, spd: 15, tel: 18 },
-    clientDilemma: '"Pemerintah daerah ingin mempermudah wajib pajak membayar Pajak Bumi dan Bangunan (PBB) serta retribusi daerah tanpa antrean panjang. Apa proposal terbaik PosIND?"',
-    options: [
-      {
-        text: 'Integrasikan sistem Biller Daerah dengan jaringan Mini ATM / EDC Pospay di seluruh loket kelurahan & aplikasi mobile Pospay.',
-        isCorrect: true,
-        explanation: 'TEPAT! Solusi penerimaan daerah berbasis Pospay & Mini ATM EDC mempercepat pendapatan asli daerah (PAD) Pemda secara akurat.',
-      },
-      {
-        text: 'Minta Pemda membuat aplikasi pembayaran baru dari nol tanpa terhubung ke jaringan loket kantor pos.',
-        isCorrect: false,
-        explanation: 'Kurang tepat. Pemda membutuhkan mitra yang sudah memiliki infrastruktur perbankan dan loket fisik yang tersebar luas.',
-      },
-    ],
     closingBonusGold: 25000000,
     closingBonusExp: 3500,
     passiveRoyaltyPerSec: 50000,
     isClosed: false,
+    stages: [
+      {
+        stageTitle: 'Tahap 1: Target Realisasi Pajak Daerah (PAD)',
+        clientDilemma: '"Pemerintah daerah ingin meningkatkan realisasi pembayaran Pajak Bumi dan Bangunan (PBB) tanpa antrean panjang di kantor dinas. Apa strategi terbaik?"',
+        options: [
+          {
+            text: 'Integrasikan channel pembayaran PBB dan retribusi daerah di seluruh jaringan loket Pos, Agenpos, EDC Pospay kelurahan, dan aplikasi Pospay.',
+            isCorrect: true,
+            explanation: 'TEPAT! Memperluas titik pembayaran (omnichannel) mempermudah masyarakat membayar pajak tepat waktu.',
+          },
+          {
+            text: 'Sarankan Pemda hanya membuka 1 loket pembayaran manual di kantor bupati.',
+            isCorrect: false,
+            explanation: 'Kurang tepat. Loket terpusat akan memicu antrean panjang dan menurunkan tingkat kepatuhan wajib pajak.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 2: Integrasi Sistem Host-to-Host (H2H)',
+        clientDilemma: '"Kepala Bapenda menegaskan bahwa data pembayaran wajib pajak harus tercatat secara real-time ke kas daerah Pemda. Mungkinkah?"',
+        options: [
+          {
+            text: 'Terapkan integrasi Host-to-Host (H2H) aman antara sistem Bapenda dan Core Banking System PosIND dengan settlement harian transparan.',
+            isCorrect: true,
+            explanation: 'TEPAT! Integrasi H2H memastikan pelaporan data keuangan akurat, real-time, dan mempermudah audit BPK.',
+          },
+          {
+            text: 'Rekapitulasi data transaksi secara manual menggunakan lembaran kertas setiap akhir bulan.',
+            isCorrect: false,
+            explanation: 'Salah. Rekapitulasi manual sangat rentan selisih data dan keterlambatan pencatatan kas daerah.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 3: Payung Hukum Perjanjian Kerja Sama (PKS)',
+        clientDilemma: '"Bagaimana prosedur legal formal sebelum sistem pembayaran pajak ini diluncurkan secara serentak ke publik?"',
+        options: [
+          {
+            text: 'Finalisasi draf PKS Penerimaan Pendapatan Daerah, penandatanganan bersama Kepala Daerah, dan kampanye sosialisasi media.',
+            isCorrect: true,
+            explanation: 'DEAL! PKS berkekuatan hukum resmi memperkuat kolaborasi strategis B2G antara Pos Indonesia dan Pemerintah Daerah.',
+          },
+          {
+            text: 'Langsung mulai operasional tanpa penandatanganan dokumen PKS resmi.',
+            isCorrect: false,
+            explanation: 'Salah. Kerja sama dengan instansi pemerintah wajib memiliki landasan PKS resmi sesuai regulasi perundang-undangan.',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'prospect_exporter',
@@ -227,23 +343,60 @@ export const INITIAL_PROSPECTS: ClientProspect[] = [
     icon: '☕',
     reqLevel: 14,
     reqStats: { sta: 20, spd: 20, tel: 22 },
-    clientDilemma: '"Koperasi kami ingin mengirim sampel biji kopi premium ke pembeli di Jerman dan Jepang dengan aman, cepat, dan dokumen bea cukai resmi."',
-    options: [
-      {
-        text: 'Gunakan layanan Pos Ekspor / EMS (Express Mail Service) dengan penanganan kepabeanan resmi internasional dan tracking end-to-end.',
-        isCorrect: true,
-        explanation: 'TEPAT! Pos Indonesia adalah anggota Universal Postal Union (UPU) dengan akses kepabeanan resmi ke 200+ negara di dunia.',
-      },
-      {
-        text: 'Sarankan pengiriman sampel kopi menggunakan pos reguler domestik biasa.',
-        isCorrect: false,
-        explanation: 'Salah. Kiriman internasional memerlukan dokumen deklarasi pabean (CN22/CN23) dan standar layanan kargo global EMS.',
-      },
-    ],
     closingBonusGold: 100000000,
     closingBonusExp: 10000,
     passiveRoyaltyPerSec: 200000,
     isClosed: false,
+    stages: [
+      {
+        stageTitle: 'Tahap 1: Pengiriman Cepat ke Pasar Eropa & Asia',
+        clientDilemma: '"Koperasi kami ingin mengirim sampel biji kopi premium ke roastery di Jerman dan Jepang dengan batas waktu pengiriman maksimal 5 hari kerja. Layanan mana yang tepat?"',
+        options: [
+          {
+            text: 'Tawarkan layanan Pos Ekspor / Express Mail Service (EMS) dengan prioritas kargo udara internasional dan tracking antar-negara.',
+            isCorrect: true,
+            explanation: 'TEPAT! EMS Pos Indonesia memiliki jaringan kerja sama pos dunia (UPU) dengan prioritas penerbangan kilat internasional.',
+          },
+          {
+            text: 'Sarankan pengiriman sampel menggunakan kapal laut reguler lambat yang memakan waktu 2 bulan.',
+            isCorrect: false,
+            explanation: 'Salah. Sampel kopi akan rusak dan kehilangan aroma jika memakan waktu terlalu lama di perjalanan.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 2: Penanganan Dokumen Kepabeanan (Customs)',
+        clientDilemma: '"Bagaimana prosedur deklarasi bea cukai dan karantina tanaman agar sampel kopi kami tidak disita di bandara tujuan?"',
+        options: [
+          {
+            text: 'Bantu pengisian formulir Deklarasi Pabean resmi UPU (CN22/CN23) dan integrasi sertifikat fitosanitari karantina tanaman.',
+            isCorrect: true,
+            explanation: 'TEPAT! Kelengkapan formulir kepabeanan UPU menjamin kiriman lolos pemeriksaan bea cukai internasional secara mulus.',
+          },
+          {
+            text: 'Kirim paket tanpa label deklarasi pabean resmi.',
+            isCorrect: false,
+            explanation: 'Salah. Kiriman tanpa dokumen CN22/CN23 akan langsung ditahan atau dimusnahkan oleh otoritas pabean negara tujuan.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 3: Asuransi & Kontrak Ekspor Terpadu',
+        clientDilemma: '"Nilai sampel kopi specialty ini sangat tinggi. Bagaimana skema proteksi dan kontrak pengiriman rutinnya?"',
+        options: [
+          {
+            text: 'Sertakan asuransi kiriman bernilai penuh (ad valorem) dan kontrak korporat Pos Ekspor dengan diskon tarif korporasi.',
+            isCorrect: true,
+            explanation: 'DEAL! Asuransi penuh dan tarif kontrak korporat memberikan kenyamanan dan efisiensi biaya bagi eksportir nasional.',
+          },
+          {
+            text: 'Tolak menyediakan asuransi dan lepas tanggung jawab atas keselamatan kargo.',
+            isCorrect: false,
+            explanation: 'Salah. Ketiadaan asuransi akan membuat klien beralih ke ekspedisi kargo swasta asing.',
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'prospect_holding_bumn',
@@ -252,23 +405,60 @@ export const INITIAL_PROSPECTS: ClientProspect[] = [
     icon: '🏗️',
     reqLevel: 18,
     reqStats: { sta: 30, spd: 30, tel: 30 },
-    clientDilemma: '"Holding BUMN kami membutuhkan distribusi dokumen resmi rahasia antar direksi dan pengelolaan gudang suplai sparepart berskala nasional."',
-    options: [
-      {
-        text: 'Tawarkan kontrak Logistik Terpadu PosIND dengan Dedicated Courier Dokumen Rahasia dan Fulfillment Warehouse di 5 kota besar.',
-        isCorrect: true,
-        explanation: 'TEPAT! Pos Indonesia memiliki rekam jejak terpercaya dalam kerahasiaan dokumen negara dan jaringan pergudangan nasional.',
-      },
-      {
-        text: 'Tolak tender karena skala proyek korporat terlalu besar.',
-        isCorrect: false,
-        explanation: 'Salah. Menolak kontrak holding BUMN membuang peluang pendapatan ratusan juta rupiah bagi Pos Indonesia.',
-      },
-    ],
     closingBonusGold: 500000000,
     closingBonusExp: 25000,
     passiveRoyaltyPerSec: 1000000,
     isClosed: false,
+    stages: [
+      {
+        stageTitle: 'Tahap 1: Kerahasiaan Dokumen Kontrak Strategis',
+        clientDilemma: '"Holding kami mendistribusikan dokumen kontrak lelang dan berkas tender bernilai triliunan rupiah antar direksi BUMN di seluruh Indonesia. Apa jaminan keamanannya?"',
+        options: [
+          {
+            text: 'Sediakan layanan Dedicated Secure Courier dengan kurir berlisensi resmi, segel tamper-evident, dan sistem serah terima terenkripsi.',
+            isCorrect: true,
+            explanation: 'TEPAT! Rekam jejak terpercaya Pos Indonesia menjamin integritas dan kerahasiaan dokumen penting negara dan BUMN.',
+          },
+          {
+            text: 'Gunakan kurir pihak ketiga lepas tanpa verifikasi identitas resmi.',
+            isCorrect: false,
+            explanation: 'Salah. Berkas lelang negara membutuhkan pengawalan dan keamanan tingkat tinggi dari institusi terpercaya.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 2: Manajemen Gudang & Rantai Pasok (Fulfillment)',
+        clientDilemma: '"Kami juga membutuhkan pengelolaan gudang suplai material proyek dan distribusi suku cadang di 5 pulau besar. Bagaimana kapabilitas PosIND?"',
+        options: [
+          {
+            text: 'Tawarkan solusi PosIND Integrated Fulfillment & Logistics Warehouse yang memanfaatkan jaringan hub logistik Pos di seluruh provinsi.',
+            isCorrect: true,
+            explanation: 'TEPAT! Jaringan gudang logistik Pos Indonesia yang tersebar di seluruh nusantara memberikan efisiensi rantai pasok bagi holding BUMN.',
+          },
+          {
+            text: 'Sarankan holding BUMN membangun gudang sendiri di setiap pulau dari nol.',
+            isCorrect: false,
+            explanation: 'Kurang tepat. Membangun gudang baru membutuhkan biaya investasi (Capex) yang sangat besar dan memakan waktu bertahun-tahun.',
+          },
+        ],
+      },
+      {
+        stageTitle: 'Tahap 3: SLA Terikat & Dedicated Key Account Manager',
+        clientDilemma: '"Holding BUMN kami membutuhkan Service Level Agreement (SLA) ketat 99.5% dan tim responsif 24/7. Apa komitmen manajemen PosIND?"',
+        options: [
+          {
+            text: 'Terbitkan Kontrak Korporat Jangka Panjang dengan penunjukan Dedicated Key Account Manager dan sistem audit SLA performa bulanan.',
+            isCorrect: true,
+            explanation: 'DEAL! Penunjukan Key Account Manager khusus menjamin kelancaran operasional logistik holding BUMN dengan standar enterprise tertinggi.',
+          },
+          {
+            text: 'Minta klien menghubungi nomor call center umum reguler jika terjadi kendala logistik.',
+            isCorrect: false,
+            explanation: 'Salah. Klien enterprise berskala ratusan juta rupiah memerlukan Account Manager khusus yang siap siaga 24/7.',
+          },
+        ],
+      },
+    ],
   },
 ];
 
@@ -561,16 +751,16 @@ interface GameState {
   activeCatId: string | null;
   activeProjectId: string | null;
 
-  // B2B Sales & Partnership State
+  // B2B Sales & Partnership State (3-Stage Questions)
   prospects: ClientProspect[];
   activeProspectPitch: ClientProspect | null;
-  pitchFeedback: { isCorrect: boolean; explanation: string; bonusGold: number; bonusExp: number } | null;
+  pitchStageIndex: number;
+  pitchFeedback: { isCorrect: boolean; explanation: string; isCompleteDeal: boolean } | null;
 
   cbsCount: number;
   cbsPoints: number;
   showCbsConfirmModal: boolean;
 
-  // Easter Egg Cheat Code
   cheatSequence: string[];
 
   totalTasksCompleted: number;
@@ -604,10 +794,11 @@ interface GameState {
   buyCatMascot: (catId: string) => void;
   setActiveCat: (catId: string | null) => void;
 
-  // B2B Partnership Actions
+  // B2B Partnership Multi-Stage Actions
   openProspectPitch: (prospectId: string) => void;
   closeProspectPitch: () => void;
   submitPitchAnswer: (optionIndex: number) => void;
+  nextPitchStage: () => void;
 
   toggleHideLocked: () => void;
   toggleHideLowLevel: () => void;
@@ -650,6 +841,7 @@ export const useGameStore = create<GameState>()(
 
       prospects: INITIAL_PROSPECTS,
       activeProspectPitch: null,
+      pitchStageIndex: 0,
       pitchFeedback: null,
 
       cbsCount: 0,
@@ -695,49 +887,77 @@ export const useGameStore = create<GameState>()(
       openProspectPitch: (prospectId) => {
         const prospect = get().prospects.find((p) => p.id === prospectId);
         if (!prospect || prospect.isClosed) return;
-        set({ activeProspectPitch: prospect, pitchFeedback: null });
+        set({ activeProspectPitch: prospect, pitchStageIndex: 0, pitchFeedback: null });
       },
 
       closeProspectPitch: () => {
-        set({ activeProspectPitch: null, pitchFeedback: null });
+        set({ activeProspectPitch: null, pitchStageIndex: 0, pitchFeedback: null });
       },
 
       submitPitchAnswer: (optionIndex) => {
-        const { activeProspectPitch, prospects, gold, exp, totalEarnings, soundEnabled } = get();
+        const { activeProspectPitch, pitchStageIndex, prospects, gold, exp, totalEarnings, soundEnabled } = get();
         if (!activeProspectPitch) return;
 
-        const selectedOption = activeProspectPitch.options[optionIndex];
+        const currentStage = activeProspectPitch.stages[pitchStageIndex];
+        if (!currentStage) return;
+
+        const selectedOption = currentStage.options[optionIndex];
         if (!selectedOption) return;
 
         if (selectedOption.isCorrect) {
-          if (soundEnabled) playPosBellSound();
+          const isFinalStage = pitchStageIndex >= activeProspectPitch.stages.length - 1;
 
-          const updatedProspects = prospects.map((p) =>
-            p.id === activeProspectPitch.id ? { ...p, isClosed: true } : p
-          );
+          if (isFinalStage) {
+            if (soundEnabled) playPosBellSound();
 
-          set({
-            prospects: updatedProspects,
-            gold: gold + activeProspectPitch.closingBonusGold,
-            exp: exp + activeProspectPitch.closingBonusExp,
-            totalEarnings: totalEarnings + activeProspectPitch.closingBonusGold,
-            pitchFeedback: {
-              isCorrect: true,
-              explanation: selectedOption.explanation,
-              bonusGold: activeProspectPitch.closingBonusGold,
-              bonusExp: activeProspectPitch.closingBonusExp,
-            },
-            eventNotification: `🤝 DEAL! Kemitraan "${activeProspectPitch.name}" berhasil di-closing! Royalty +Rp ${activeProspectPitch.passiveRoyaltyPerSec.toLocaleString('id-ID')}/detik aktif!`,
-          });
+            const updatedProspects = prospects.map((p) =>
+              p.id === activeProspectPitch.id ? { ...p, isClosed: true } : p
+            );
+
+            set({
+              prospects: updatedProspects,
+              gold: gold + activeProspectPitch.closingBonusGold,
+              exp: exp + activeProspectPitch.closingBonusExp,
+              totalEarnings: totalEarnings + activeProspectPitch.closingBonusGold,
+              pitchFeedback: {
+                isCorrect: true,
+                explanation: selectedOption.explanation,
+                isCompleteDeal: true,
+              },
+              eventNotification: `🤝 DEAL SELESAI! Seluruh 3 tahap pitching "${activeProspectPitch.name}" berhasil! Kontrak PKS resmi terbit! (+${activeProspectPitch.passiveRoyaltyPerSec.toLocaleString('id-ID')} Rp/s)`,
+            });
+          } else {
+            if (soundEnabled) playPosBellSound();
+            set({
+              pitchFeedback: {
+                isCorrect: true,
+                explanation: selectedOption.explanation,
+                isCompleteDeal: false,
+              },
+            });
+          }
         } else {
           set({
             pitchFeedback: {
               isCorrect: false,
               explanation: selectedOption.explanation,
-              bonusGold: 0,
-              bonusExp: 0,
+              isCompleteDeal: false,
             },
           });
+        }
+      },
+
+      nextPitchStage: () => {
+        const { pitchFeedback, pitchStageIndex, activeProspectPitch } = get();
+        if (!pitchFeedback || !activeProspectPitch) return;
+
+        if (pitchFeedback.isCompleteDeal) {
+          set({ activeProspectPitch: null, pitchStageIndex: 0, pitchFeedback: null });
+        } else if (pitchFeedback.isCorrect) {
+          set({ pitchStageIndex: pitchStageIndex + 1, pitchFeedback: null });
+        } else {
+          // Jika salah, ulang dari tahap ini
+          set({ pitchFeedback: null });
         }
       },
 
@@ -887,7 +1107,6 @@ export const useGameStore = create<GameState>()(
         const goldPerSec = (currentTask.rewardGold / currentTask.duration) * cbsGoldMultiplier;
         const expPerSec = (currentTask.rewardExp / currentTask.duration) * totalExpBonus;
 
-        // Passive Income dari Mitra Closed
         const closedPartnersRoyaltyPerSec = state.prospects
           .filter((p) => p.isClosed)
           .reduce((sum, p) => sum + p.passiveRoyaltyPerSec, 0);
@@ -1006,7 +1225,6 @@ export const useGameStore = create<GameState>()(
         const now = Date.now();
         let newFloatingList = floatingTextList.filter((f) => Date.now() - f.id < 1200);
 
-        // Passive Income dari Seluruh Mitra yang Berhasil di-Closing!
         const totalPartnersRoyaltyPerSec = prospects
           .filter((p) => p.isClosed)
           .reduce((sum, p) => sum + p.passiveRoyaltyPerSec, 0);
